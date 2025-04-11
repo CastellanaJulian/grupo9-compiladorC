@@ -15,67 +15,6 @@ int yyerror(void);
 %option noyywrap  
 %option yylineno 
 
-/* EXPRESIONES BASE */
-Letra = [a-zA-Z]
-Digito = [0-9]
-Espacio = [ \t\r\n]+
-Caracter = [=|>|<|!|:|+|-|*|/|?|¿|!|¡|@|%|#|&|°|´|^|`|~|/|\\|-|_|.|,|;|¬||]
-ID = {Letra}({Letra}{Digito})*
-AbrirComentario = "#+"
-CerrarComentario = "+#"
-ContenidoComentario = "([^+]|(\+[^#]))*"
-Comentario  = {AbrirComentario}+{ContenidoComentario}{CerrarComentario}+ /* Falta completar el contenido */
-
-/* PALABRAS RESERVADAS */
-
-While = "while"
-If = "if"
-Else = "else"
-Init = "init"
-Read = "read"
-Write = "write"
-Float = "float"
-String = "string"
-Int = "int"
-
-/* OPERADORES ARITMETICOS */
-
-Mas = "+"
-GuionMedio = "-"
-Multiplicar = "*"
-Dividir = "/"
-
-/* OPERADORES COMPARACION */
-
-Igual = "=="
-Distinto = "!="
-Menor = "<"
-MenorIgual = "<="
-Mayor = ">"
-MayorIgual = ">="
-
-/* CONDICIONES */
-
-And = "AND"
-Or = "OR"
-Not = "NOT"
-
-/* ASIGNACION */
-
-Asignacion = ":="
-
-/* SIMBOLOS Y SEPARADORES */
-
-AbrirParentesis = "("
-CerrarParentesis = ")"
-AbrirLlave = "{"
-CerrarLlave = "}"
-DosPuntos = ":"
-Coma = ","
-PuntoYComa = ";"
-
-
-%%
 
 /* EXPRESIONES BASE */
 Letra = [a-zA-Z]
