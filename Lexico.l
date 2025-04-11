@@ -15,18 +15,65 @@ int yyerror(void);
 %option noyywrap  
 %option yylineno 
 
-DIGITO			[0-9]
-LETRA			[a-zA-Z]
+/* EXPRESIONES BASE */
+Letra = [a-zA-Z]
+Digito = [0-9]
+Espacio = [ \t\r\n]+
+Caracter = [=|>|<|!|:|+|-|*|/|?|¿|!|¡|@|%|#|&|°|´|^|`|~|/|\\|-|_|.|,|;|¬||]
+ID = {Letra}({Letra}{Digito})*
+AbrirComentario = "#+"
+CerrarComentario = "+#"
+ContenidoComentario = "([^+]|(\+[^#]))*"
+Comentario  = {AbrirComentario}+{ContenidoComentario}{CerrarComentario}+ /* Falta completar el contenido */
 
-CTE		        {DIGITO}+
-ID			{LETRA}({LETRA}|{DIGITO})*
-OP_AS   		":""="
-OP_SUM		        "+"
-OP_MUL                  "*"
-OP_RES		        "-"
-OP_DIV                  "/"
-PA			"("
-PC			")"
+/* PALABRAS RESERVADAS */
+
+While = "while"
+If = "if"
+Else = "else"
+Init = "init"
+Read = "read"
+Write = "write"
+Float = "float"
+String = "string"
+Int = "int"
+
+/* OPERADORES ARITMETICOS */
+
+Mas = "+"
+GuionMedio = "-"
+Multiplicar = "*"
+Dividir = "/"
+
+/* OPERADORES COMPARACION */
+
+Igual = "=="
+Distinto = "!="
+Menor = "<"
+MenorIgual = "<="
+Mayor = ">"
+MayorIgual = ">="
+
+/* CONDICIONES */
+
+And = "AND"
+Or = "OR"
+Not "NOT"
+
+/* ASIGNACION */
+
+Asignacion = ":="
+
+/* SIMBOLOS Y SEPARADORES */
+
+AbrirParentesis = "("
+CerrarParentesis = ")"
+AbrirLlave = "{"
+CerrarLlave = "}"
+DosPuntos = ":"
+Coma = ","
+PuntoYComa = ";"
+
 
 %%
 
