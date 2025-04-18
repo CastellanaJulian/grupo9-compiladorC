@@ -1,0 +1,57 @@
+INIT
+{
+   a,b,c,d:Int
+   e:String
+   f:Float
+}
+
+READ (a);
+
+WRITE ("hello world");
+
+e=sliceAndConcat(3, 6, "amarillo", "verde", FALSE);
+
+WRITE (e);
+
+a=sumFirstPrimes(5);
+
+b = 9;
+f = 1.0;
+e = "verde";
+
+e=sliceAndConcat(a, 6, "amarillo", e, FALSE);
+
+a=sumFirstPrimes(((a * b) - 5));
+
+if(a == 0 AND b == 1){
+   a := 3;
+} else {
+   b := 8;
+}
+
+if(NOT (1 == 1)) {
+   a := 5;
+}
+
+while(a == 1) {
+   d := 10;
+   while(b == 1) {
+   	d := 10;
+      if(1 == 1) 
+      {
+         b := 5;
+      }
+   }
+}
+
+if(a > b + 3 AND a < 4){
+   c := 6;
+}
+
+#+ Así son los comentarios de LyC +#
+
+#+ Error Lexico:  Asignacion de entero fuera de rango +#
+#+ d = 100000000; +#
+
+#+ Error Sintactico +#
+#+ if a + b +#
