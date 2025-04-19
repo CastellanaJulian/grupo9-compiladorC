@@ -7,7 +7,7 @@ INIT
 
 READ (a);
 
-WRITE ("hello world");
+WRITE ("hola mundo");
 
 e=sliceAndConcat(3, 6, "amarillo", "verde", FALSE);
 
@@ -15,27 +15,37 @@ WRITE (e);
 
 a=sumFirstPrimes(5);
 
+WRITE (a);
+
 b = 9;
 f = 1.0;
 e = "verde";
 
 e=sliceAndConcat(a, 6, "amarillo", e, FALSE);
 
+WRITE (e);
+
 a=sumFirstPrimes(((a * b) - 5));
 
-if(a == 0 AND b == 1){
+WRITE (a);
+
+if(a == 0 AND b == 1)
+{
    a := 3;
 } else {
    b := 8;
 }
 
-if(NOT (1 == 1)) {
+if(NOT (1 == 1))
+{
    a := 5;
 }
 
-while(a == 1) {
+while(a == 1)
+{
    d := 10;
-   while(b == 1) {
+   while(b == 1)
+   {
    	d := 10;
       if(1 == 1) 
       {
@@ -44,7 +54,8 @@ while(a == 1) {
    }
 }
 
-if(a > b + 3 AND a < 4){
+if(a > b + 3 AND a < 4)
+{
    c := 6;
 }
 

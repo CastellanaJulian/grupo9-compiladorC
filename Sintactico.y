@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "y.tab.h"
-int yystopparser=0;
+
+int yystopparser = 0;
 FILE  *yyin;
 
-  int yyerror();
-  int yylex();
-
+int yyerror();
+int yylex();
 %}
 
 %token ID
@@ -116,9 +116,6 @@ factor:
 	| PA expresion PC {printf("    Expresion entre parentesis es Factor\n");}
 	| sum_first_primes {printf("    sumFirstPrimes es Factor\n");}
 	;
-
-lista:
-	CA elementos CC {printf("     [elementos] es una lista \n");}
 
 elementos:
 	elemento 

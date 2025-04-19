@@ -13,7 +13,7 @@
 
        f	|	        	|	   Float	|	       1
 
-_"hello world"	|	"hello world"	|	        	|	      13
+_"hola mundo"	|	"hola mundo"	|	        	|	      12
 
       _3	|	       3	|	        	|	       1
 
