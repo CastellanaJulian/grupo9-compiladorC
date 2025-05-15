@@ -2,7 +2,7 @@ INIT
 {
    a,b,c,d:Int
    e:String
-   f:Float
+   f,g:Float
 }
 
 READ (a);
@@ -20,6 +20,7 @@ WRITE (a);
 b = 9;
 f = 1.0;
 e = "verde";
+g = 7.255;
 
 e=sliceAndConcat(a, 6, "amarillo", e, FALSE);
 
@@ -66,3 +67,5 @@ if(a > b + 3 AND a < 4)
 
 #+ Error Sintactico +#
 #+ if a + b +#
+
+#+ sadkj#asod_-xD+12130H!"=?)?= +#

@@ -17,6 +17,10 @@
 #define REGISTROS_MAXIMO 1000
 #define NOMBRE_ARCHIVO_TABLA_DE_SIMBOLOS "symbol-table.txt"
 
+#define TIPO_FLOAT  "CTE_FLOAT"
+#define TIPO_INT    "CTE_INT"
+#define TIPO_STR "CTE_STR"
+
 typedef struct {
     char lexema[50];
     char tipo[50];
@@ -44,52 +48,61 @@ int crearTablaDeSimbolos();
 %option noyywrap  
 %option yylineno 
 
+/* Conjuntos */
 NUMERO          [0-9]
 LETRA           [a-zA-Z]
-ID              {LETRA}({LETRA}|{NUMERO})*
-CTE_INT         {NUMERO}+
+
+/* Regex */
 CTE_FLOAT       ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
+CTE_INT         {NUMERO}+
 CTE_STR         {QUOTE}.[^"]+.{QUOTE}
-COMMENT_OP      "#+"
-COMMENT_IN      [^"]
-COMMENT_CL      "+#"
-COMMENT         {COMMENT_OP}+{COMMENT_IN}*{COMMENT_CL}+
-INTEGER         "INTEGER"|"integer"|"Int"|"int"
-FLOAT           "FLOAT"|"float"|"Float"
-STRING          "STRING"|"string"|"String"
-COMA            ","
-OP_AS           ":="|"="
-OP_SUM          "+"
-OP_MUL          "*"
-OP_RES          "-"
-OP_DIV          "/"
-OP_DP           ":"
+ID              {LETRA}({LETRA}|{NUMERO})*
+
+/* Caracteres */
 PA              "("
 PC              ")"
 CA              "["
 CC              "]"
 LLA             "{"
 LLC             "}"
+COMA            ","
+OP_DP           ":"
+OP_ENDLINE      ";"
+QUOTE   	    "\""
+
+/* Operadores */
+OP_AS           ":="|"="
+OP_SUM          "+"
+OP_MUL          "*"
+OP_RES          "-"
+OP_DIV          "/"
 OP_LOW          "<"
 OP_GREAT        ">"
 OP_EQUAL        "=="
 OP_LE           "<="
 OP_GE           ">="
-OP_ENDLINE      ";"
-QUOTE   	    "\""
-BOOL		    "TRUE"|"FALSE"
-
-WRITE           "WRITE"|"write"
-READ            "READ"|"read"
-IF              "IF"|"if"
-WHILE           "WHILE"|"while"
-ELSE            "ELSE"|"else"
 AND             "AND"|"and"
 OR              "OR"|"or"
 NOT             "NOT"|"not"
+BOOL		    "TRUE"|"FALSE"
+
+/* Palabras Reservadas */
 INIT            "init"|"INIT"
+INTEGER         "INTEGER"|"integer"|"Int"|"int"
+FLOAT           "FLOAT"|"float"|"Float"
+STRING          "STRING"|"string"|"String"
+READ            "READ"|"read"
+WRITE           "WRITE"|"write"
+IF              "IF"|"if"
+ELSE            "ELSE"|"else"
+WHILE           "WHILE"|"while"
 SAC 	        "sliceAndConcat"
 SFP             "sumFirstPrimes"
+
+/* Comentarios */
+COMMENT_OP      "#+"
+COMMENT_CL      "+#"
+COMMENT         {COMMENT_OP}.*{COMMENT_CL}
 
 %%
 
@@ -191,32 +204,50 @@ int validarCadena(char* posibleLexema)
 void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
 {
     int i = 0, duplicado = 0;
-	char memoria[50];
-    while(i < registroTabla && i < REGISTROS_MAXIMO && !duplicado && !esTipo)
+	char nombreClave[50];
+
+    if (esConstante)
     {
-        if(!strcmp(tablaDeSimbolos[i].lexema, lexema))
+        strcpy(nombreClave, "_");
+        strcat(nombreClave, lexema);
+    }
+    else
+    {
+        strcpy(nombreClave, lexema);
+    }
+
+    while (i < registroTabla && i < REGISTROS_MAXIMO && !duplicado && !esTipo)
+    {
+        if (!strcmp(tablaDeSimbolos[i].lexema, nombreClave))
         {
             duplicado = 1;
         }
         i++;
     }
-    if(!duplicado && !esTipo)
+    if (!duplicado && !esTipo)
     {
         tablaDeSimbolos[registroTabla].longitud = strlen(lexema);
-		strcpy(tablaDeSimbolos[registroTabla].lexema, lexema);
-        if(esConstante)
+		strcpy(tablaDeSimbolos[registroTabla].lexema, nombreClave);
+        if (esConstante)
         {
-			strcpy(memoria, "_");
-			strcat(memoria, lexema);
-		    strcpy(tablaDeSimbolos[registroTabla].lexema, memoria);
             strcpy(tablaDeSimbolos[registroTabla].valor, lexema);
+            
+            if (lexema[0] == '"' && lexema[strlen(lexema)-1] == '"')
+                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_STR);
+            else if (strchr(lexema, '.') != NULL)
+                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_FLOAT);
+            else
+                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_INT);
+        }
+        else
+        {
+            contVar++;
         }
         registroTabla++;
-		contVar++;
     }
-	if(esTipo)
+	if (esTipo)
 	{
-		while(contVar != 0)
+		while (contVar > 0)
 		{
 			strcpy(tablaDeSimbolos[registroTabla - contVar].tipo, lexema);
 			contVar--;
