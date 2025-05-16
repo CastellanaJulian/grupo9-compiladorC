@@ -49,117 +49,121 @@ int crearTablaDeSimbolos();
 %option yylineno 
 
 /* Conjuntos */
-NUMERO          [0-9]
-LETRA           [a-zA-Z]
+NUMERO              [0-9]
+LETRA               [a-zA-Z]
 
 /* Regex */
-CTE_FLOAT       ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
-CTE_INT         {NUMERO}+
-CTE_STR         {QUOTE}.[^"]+.{QUOTE}
-ID              {LETRA}({LETRA}|{NUMERO})*
+CTE_FLOAT           ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
+CTE_INT             {NUMERO}+
+CTE_STR             {QUOTE}.[^"]+.{QUOTE}
+ID                  {LETRA}({LETRA}|{NUMERO})*
 
 /* Caracteres */
-PA              "("
-PC              ")"
-CA              "["
-CC              "]"
-LLA             "{"
-LLC             "}"
-COMA            ","
-OP_DP           ":"
-OP_ENDLINE      ";"
-QUOTE   	    "\""
+PA                  "("
+PC                  ")"
+CA                  "["
+CC                  "]"
+LLA                 "{"
+LLC                 "}"
+COMA                ","
+OP_DP               ":"
+OP_ENDLINE          ";"
+QUOTE   	        "\""
 
 /* Operadores */
-OP_AS           ":="|"="
-OP_SUM          "+"
-OP_MUL          "*"
-OP_RES          "-"
-OP_DIV          "/"
-OP_LOW          "<"
-OP_GREAT        ">"
-OP_EQUAL        "=="
-OP_LE           "<="
-OP_GE           ">="
-AND             "AND"|"and"
-OR              "OR"|"or"
-NOT             "NOT"|"not"
-BOOL		    "TRUE"|"FALSE"
+OP_AS               ":="|"="
+OP_SUM              "+"
+OP_MUL              "*"
+OP_RES              "-"
+OP_DIV              "/"
+OP_LOW              "<"
+OP_GREAT            ">"
+OP_EQUAL            "=="
+OP_LE               "<="
+OP_GE               ">="
+AND                 "AND"|"and"
+OR                  "OR"|"or"
+NOT                 "NOT"|"not"
+BOOL		        "TRUE"|"FALSE"
 
 /* Palabras Reservadas */
-INIT            "init"|"INIT"
-INTEGER         "INTEGER"|"integer"|"Int"|"int"
-FLOAT           "FLOAT"|"float"|"Float"
-STRING          "STRING"|"string"|"String"
-READ            "READ"|"read"
-WRITE           "WRITE"|"write"
-IF              "IF"|"if"
-ELSE            "ELSE"|"else"
-WHILE           "WHILE"|"while"
-SAC 	        "sliceAndConcat"
-SFP             "sumFirstPrimes"
+INIT                "init"|"INIT"
+INTEGER             "INTEGER"|"integer"|"Int"|"int"
+FLOAT               "FLOAT"|"float"|"Float"
+STRING              "STRING"|"string"|"String"
+READ                "READ"|"read"
+WRITE               "WRITE"|"write"
+IF                  "IF"|"if"
+ELSE                "ELSE"|"else"
+WHILE               "WHILE"|"while"
+SAC 	            "sliceAndConcat"
+SFP                 "sumFirstPrimes"
 
 /* Comentarios */
-COMMENT_OP      "#+"
-COMMENT_CL      "+#"
-COMMENT         {COMMENT_OP}.*{COMMENT_CL}
+COMMENT_OP          "#+"
+COMMENT_CL          "+#"
+COMMENT             {COMMENT_OP}.*{COMMENT_CL}
+NESTED_COMMENT      {COMMENT_OP}.*{COMMENT}.*{COMMENT_CL}
+MULTILINE_COMMENT   {COMMENT_OP}(.|\n)*?{COMMENT_CL}  
 
 %%
 
-{OP_SUM}        { return OP_SUM; }
-{OP_AS}         { return OP_AS; }
-{OP_MUL}        { return OP_MUL; }
-{OP_RES}        { return OP_RES; }
-{OP_DIV}        { return OP_DIV; }
-{PA}            { return PA; }
-{PC}            { return PC; }
-{CA}            { return CA; }
-{CC}            { return CC; }
-{LLA}           { return LLA; }
-{LLC}           { return LLC; }
+{OP_SUM}            { return OP_SUM; }
+{OP_AS}             { return OP_AS; }
+{OP_MUL}            { return OP_MUL; }
+{OP_RES}            { return OP_RES; }
+{OP_DIV}            { return OP_DIV; }
+{PA}                { return PA; }
+{PC}                { return PC; }
+{CA}                { return CA; }
+{CC}                { return CC; }
+{LLA}               { return LLA; }
+{LLC}               { return LLC; }
 
-{COMMENT}       {   }
+{COMMENT}           {   }
+{NESTED_COMMENT}    {   }
+{MULTILINE_COMMENT} {   }
 
-{OP_ENDLINE}    { return OP_ENDLINE; }
+{OP_ENDLINE}        { return OP_ENDLINE; }
 
-{INTEGER}       { agregarATablaDeSimbolos(yytext,0,1); return INTEGER; }
-{FLOAT}         { agregarATablaDeSimbolos(yytext,0,1); return FLOAT; }
-{STRING}        { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
-{BOOL}          { return BOOL; }
+{INTEGER}           { agregarATablaDeSimbolos(yytext,0,1); return INTEGER; }
+{FLOAT}             { agregarATablaDeSimbolos(yytext,0,1); return FLOAT; }
+{STRING}            { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
+{BOOL}              { return BOOL; }
 
-{CTE_INT}       { validarEntero(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
-{CTE_FLOAT}     { validarFlotante(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
-{CTE_STR}       { validarCadena(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
+{CTE_INT}           { validarEntero(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
+{CTE_FLOAT}         { validarFlotante(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
+{CTE_STR}           { validarCadena(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
 
-{WRITE}         { return WRITE; }
-{READ}          { return READ; }
-{IF}            { return IF; }
-{ELSE}          { return ELSE; }
-{WHILE}         { return WHILE; }
-{AND}           { return AND; }
-{OR}            { return OR; }
-{NOT}           { return NOT; }
-{INIT}          { return INIT; }
-{COMA}          { return COMA; }
-{SAC}           { return SAC; }
-{SFP}           { return SFP; }
+{WRITE}             { return WRITE; }
+{READ}              { return READ; }
+{IF}                { return IF; }
+{ELSE}              { return ELSE; }
+{WHILE}             { return WHILE; }
+{AND}               { return AND; }
+{OR}                { return OR; }
+{NOT}               { return NOT; }
+{INIT}              { return INIT; }
+{COMA}              { return COMA; }
+{SAC}               { return SAC; }
+{SFP}               { return SFP; }
 
-{OP_LOW}        { return OP_LOW; }
-{OP_GREAT}      { return OP_GREAT; }
-{OP_EQUAL}      { return OP_EQUAL; }
-{OP_LE}         { return OP_LE; }
-{OP_GE}         { return OP_GE; }
-{QUOTE}         { return QUOTE; }
-{OP_DP}         { return OP_DP; }
+{OP_LOW}            { return OP_LOW; }
+{OP_GREAT}          { return OP_GREAT; }
+{OP_EQUAL}          { return OP_EQUAL; }
+{OP_LE}             { return OP_LE; }
+{OP_GE}             { return OP_GE; }
+{QUOTE}             { return QUOTE; }
+{OP_DP}             { return OP_DP; }
 
-{ID}            { agregarATablaDeSimbolos(yytext,0,0); return ID; }
+{ID}                { agregarATablaDeSimbolos(yytext,0,0); return ID; }
 
 "\n"      		
 "\t"
 "\n\t"
 " "             		
 "\r\n"
-.               { printf( "ERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0);}
+.                   { printf( "ERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0);}
 
 %%
 
@@ -205,7 +209,6 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
 {
     int i = 0, duplicado = 0;
 	char nombreClave[50];
-
     if (esConstante)
     {
         strcpy(nombreClave, "_");
@@ -215,7 +218,6 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
     {
         strcpy(nombreClave, lexema);
     }
-
     while (i < registroTabla && i < REGISTROS_MAXIMO && !duplicado && !esTipo)
     {
         if (!strcmp(tablaDeSimbolos[i].lexema, nombreClave))
@@ -226,14 +228,16 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
     }
     if (!duplicado && !esTipo)
     {
-        tablaDeSimbolos[registroTabla].longitud = strlen(lexema);
+        
 		strcpy(tablaDeSimbolos[registroTabla].lexema, nombreClave);
         if (esConstante)
         {
             strcpy(tablaDeSimbolos[registroTabla].valor, lexema);
             
-            if (lexema[0] == '"' && lexema[strlen(lexema)-1] == '"')
+            if (lexema[0] == '"' && lexema[strlen(lexema)-1] == '"') {
                 strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_STR);
+                tablaDeSimbolos[registroTabla].longitud = strlen(lexema);
+            }
             else if (strchr(lexema, '.') != NULL)
                 strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_FLOAT);
             else

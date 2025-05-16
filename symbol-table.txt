@@ -1,44 +1,44 @@
 
   Nombre	|	   Valor	|	    Tipo	|	Longitud
 
-       a	|	        	|	     Int	|	       1
+       a	|	        	|	     Int	|	       0
 
-       b	|	        	|	     Int	|	       1
+       b	|	        	|	     Int	|	       0
 
-       c	|	        	|	     Int	|	       1
+       c	|	        	|	     Int	|	       0
 
-       d	|	        	|	     Int	|	       1
+       d	|	        	|	     Int	|	       0
 
-       e	|	        	|	  String	|	       1
+       e	|	        	|	  String	|	       0
 
-       f	|	        	|	   Float	|	       1
+       f	|	        	|	   Float	|	       0
 
-       g	|	        	|	   Float	|	       1
+       g	|	        	|	   Float	|	       0
 
 _"hola mundo"	|	"hola mundo"	|	 CTE_STR	|	      12
 
-      _3	|	       3	|	 CTE_INT	|	       1
+      _3	|	       3	|	 CTE_INT	|	       0
 
-      _6	|	       6	|	 CTE_INT	|	       1
+      _6	|	       6	|	 CTE_INT	|	       0
 
 _"amarillo"	|	"amarillo"	|	 CTE_STR	|	      10
 
 _"verde"	|	 "verde"	|	 CTE_STR	|	       7
 
-      _5	|	       5	|	 CTE_INT	|	       1
+      _5	|	       5	|	 CTE_INT	|	       0
 
-      _9	|	       9	|	 CTE_INT	|	       1
+      _9	|	       9	|	 CTE_INT	|	       0
 
-    _1.0	|	     1.0	|	CTE_FLOAT	|	       3
+    _1.0	|	     1.0	|	CTE_FLOAT	|	       0
 
-  _7.255	|	   7.255	|	CTE_FLOAT	|	       5
+  _7.255	|	   7.255	|	CTE_FLOAT	|	       0
 
-      _0	|	       0	|	 CTE_INT	|	       1
+      _0	|	       0	|	 CTE_INT	|	       0
 
-      _1	|	       1	|	 CTE_INT	|	       1
+      _1	|	       1	|	 CTE_INT	|	       0
 
-      _8	|	       8	|	 CTE_INT	|	       1
+      _8	|	       8	|	 CTE_INT	|	       0
 
-     _10	|	      10	|	 CTE_INT	|	       2
+     _10	|	      10	|	 CTE_INT	|	       0
 
-      _4	|	       4	|	 CTE_INT	|	       1
+      _4	|	       4	|	 CTE_INT	|	       0

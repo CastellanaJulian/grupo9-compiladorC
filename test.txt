@@ -68,4 +68,12 @@ if(a > b + 3 AND a < 4)
 #+ Error Sintactico +#
 #+ if a + b +#
 
-#+ sadkj#asod_-xD+12130H!"=?)?= +#
+#+ Test Comentarios +#
+#+sadkj#=!ºasod_-DxD+12130H!"=?)?= +#
+#+ ª!·"$%&/(=?¿*^¨Ç_:.-ç´+) +#
+#+ Este es un comentario #+ Este es un comentario anidado +# +#
+#+
+   Este es un comentario multilinea
+   Hola
+   #+ Este es un comentario anidado +# 
++#
