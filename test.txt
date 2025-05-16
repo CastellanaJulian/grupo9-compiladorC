@@ -47,9 +47,20 @@ while(a == 1)
    d := 10;
    while(b == 1)
    {
+      #+ Ciclo while +#
    	d := 10;
       if(1 == 1) 
       {
+         #+
+            Asigno
+            el valor 5
+            a la variable
+            b
+            #+ El valor sera asignado +#
+            #+
+               Al id b
+            +#
+         +#
          b := 5;
       }
    }
@@ -57,6 +68,7 @@ while(a == 1)
 
 if(a > b + 3 AND a < 4)
 {
+   #+ Igualo a 6 +#
    c := 6;
 }
 

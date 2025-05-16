@@ -34,6 +34,7 @@ FILE  *yyin;
 int yylval;
 char *yyltext;
 int contVar = 0;
+int comentarioAnidado = 0;
 
 int yyparse();
 int validarEntero(char* str);
@@ -46,117 +47,118 @@ int crearTablaDeSimbolos();
 %}
 
 %option noyywrap  
-%option yylineno 
+%option yylineno
+
+%x COMMENT
 
 /* Conjuntos */
-NUMERO              [0-9]
-LETRA               [a-zA-Z]
+NUMERO                  [0-9]
+LETRA                   [a-zA-Z]
 
 /* Regex */
-CTE_FLOAT           ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
-CTE_INT             {NUMERO}+
-CTE_STR             {QUOTE}.[^"]+.{QUOTE}
-ID                  {LETRA}({LETRA}|{NUMERO})*
+CTE_FLOAT               ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
+CTE_INT                 {NUMERO}+
+CTE_STR                 {QUOTE}.[^"]+.{QUOTE}
+ID                      {LETRA}({LETRA}|{NUMERO})*
 
 /* Caracteres */
-PA                  "("
-PC                  ")"
-CA                  "["
-CC                  "]"
-LLA                 "{"
-LLC                 "}"
-COMA                ","
-OP_DP               ":"
-OP_ENDLINE          ";"
-QUOTE   	        "\""
+PA                      "("
+PC                      ")"
+CA                      "["
+CC                      "]"
+LLA                     "{"
+LLC                     "}"
+COMA                    ","
+OP_DP                   ":"
+OP_ENDLINE              ";"
+QUOTE   	            "\""
 
 /* Operadores */
-OP_AS               ":="|"="
-OP_SUM              "+"
-OP_MUL              "*"
-OP_RES              "-"
-OP_DIV              "/"
-OP_LOW              "<"
-OP_GREAT            ">"
-OP_EQUAL            "=="
-OP_LE               "<="
-OP_GE               ">="
-AND                 "AND"|"and"
-OR                  "OR"|"or"
-NOT                 "NOT"|"not"
-BOOL		        "TRUE"|"FALSE"
+OP_AS                   ":="|"="
+OP_SUM                  "+"
+OP_MUL                  "*"
+OP_RES                  "-"
+OP_DIV                  "/"
+OP_LOW                  "<"
+OP_GREAT                ">"
+OP_EQUAL                "=="
+OP_LE                   "<="
+OP_GE                   ">="
+AND                     "AND"|"and"
+OR                      "OR"|"or"
+NOT                     "NOT"|"not"
+BOOL		            "TRUE"|"FALSE"
 
 /* Palabras Reservadas */
-INIT                "init"|"INIT"
-INTEGER             "INTEGER"|"integer"|"Int"|"int"
-FLOAT               "FLOAT"|"float"|"Float"
-STRING              "STRING"|"string"|"String"
-READ                "READ"|"read"
-WRITE               "WRITE"|"write"
-IF                  "IF"|"if"
-ELSE                "ELSE"|"else"
-WHILE               "WHILE"|"while"
-SAC 	            "sliceAndConcat"
-SFP                 "sumFirstPrimes"
+INIT                    "init"|"INIT"
+INTEGER                 "INTEGER"|"integer"|"Int"|"int"
+FLOAT                   "FLOAT"|"float"|"Float"
+STRING                  "STRING"|"string"|"String"
+READ                    "READ"|"read"
+WRITE                   "WRITE"|"write"
+IF                      "IF"|"if"
+ELSE                    "ELSE"|"else"
+WHILE                   "WHILE"|"while"
+SAC 	                "sliceAndConcat"
+SFP                     "sumFirstPrimes"
 
 /* Comentarios */
-COMMENT_OP          "#+"
-COMMENT_CL          "+#"
-COMMENT             {COMMENT_OP}.*{COMMENT_CL}
-NESTED_COMMENT      {COMMENT_OP}.*{COMMENT}.*{COMMENT_CL}
-MULTILINE_COMMENT   {COMMENT_OP}(.|\n)*?{COMMENT_CL}  
+COMMENT_OP              "#+"
+COMMENT_CL              "+#"
 
 %%
 
-{OP_SUM}            { return OP_SUM; }
-{OP_AS}             { return OP_AS; }
-{OP_MUL}            { return OP_MUL; }
-{OP_RES}            { return OP_RES; }
-{OP_DIV}            { return OP_DIV; }
-{PA}                { return PA; }
-{PC}                { return PC; }
-{CA}                { return CA; }
-{CC}                { return CC; }
-{LLA}               { return LLA; }
-{LLC}               { return LLC; }
+{OP_SUM}                { return OP_SUM; }
+{OP_AS}                 { return OP_AS; }
+{OP_MUL}                { return OP_MUL; }
+{OP_RES}                { return OP_RES; }
+{OP_DIV}                { return OP_DIV; }
+{PA}                    { return PA; }
+{PC}                    { return PC; }
+{CA}                    { return CA; }
+{CC}                    { return CC; }
+{LLA}                   { return LLA; }
+{LLC}                   { return LLC; }
 
-{COMMENT}           {   }
-{NESTED_COMMENT}    {   }
-{MULTILINE_COMMENT} {   }
+{COMMENT_OP}            { comentarioAnidado++; BEGIN(COMMENT); }
+<COMMENT>{COMMENT_OP}   { comentarioAnidado++; }
+<COMMENT>{COMMENT_CL}   { if (--comentarioAnidado == 0) BEGIN(INITIAL); }
+<COMMENT>\n             {    }
+<COMMENT>.              {    }
 
-{OP_ENDLINE}        { return OP_ENDLINE; }
+{OP_ENDLINE}            { return OP_ENDLINE; }
 
-{INTEGER}           { agregarATablaDeSimbolos(yytext,0,1); return INTEGER; }
-{FLOAT}             { agregarATablaDeSimbolos(yytext,0,1); return FLOAT; }
-{STRING}            { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
-{BOOL}              { return BOOL; }
+{INTEGER}               { agregarATablaDeSimbolos(yytext,0,1); return INTEGER; }
+{FLOAT}                 { agregarATablaDeSimbolos(yytext,0,1); return FLOAT; }
+{STRING}                { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
+{BOOL}                  { return BOOL; }
 
-{CTE_INT}           { validarEntero(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
-{CTE_FLOAT}         { validarFlotante(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
-{CTE_STR}           { validarCadena(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
+{CTE_INT}               { validarEntero(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
+{CTE_FLOAT}             { validarFlotante(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
+{CTE_STR}               { validarCadena(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
 
-{WRITE}             { return WRITE; }
-{READ}              { return READ; }
-{IF}                { return IF; }
-{ELSE}              { return ELSE; }
-{WHILE}             { return WHILE; }
-{AND}               { return AND; }
-{OR}                { return OR; }
-{NOT}               { return NOT; }
-{INIT}              { return INIT; }
-{COMA}              { return COMA; }
-{SAC}               { return SAC; }
-{SFP}               { return SFP; }
+{WRITE}                 { return WRITE; }
+{READ}                  { return READ; }
+{IF}                    { return IF; }
+{ELSE}                  { return ELSE; }
+{WHILE}                 { return WHILE; }
+{AND}                   { return AND; }
+{OR}                    { return OR; }
+{NOT}                   { return NOT; }
+{INIT}                  { return INIT; }
+{COMA}                  { return COMA; }
+{SAC}                   { return SAC; }
+{SFP}                   { return SFP; }
 
-{OP_LOW}            { return OP_LOW; }
-{OP_GREAT}          { return OP_GREAT; }
-{OP_EQUAL}          { return OP_EQUAL; }
-{OP_LE}             { return OP_LE; }
-{OP_GE}             { return OP_GE; }
-{QUOTE}             { return QUOTE; }
-{OP_DP}             { return OP_DP; }
+{OP_LOW}                { return OP_LOW; }
+{OP_GREAT}              { return OP_GREAT; }
+{OP_EQUAL}              { return OP_EQUAL; }
+{OP_LE}                 { return OP_LE; }
+{OP_GE}                 { return OP_GE; }
+{QUOTE}                 { return QUOTE; }
+{OP_DP}                 { return OP_DP; }
 
-{ID}                { agregarATablaDeSimbolos(yytext,0,0); return ID; }
+{ID}                    { agregarATablaDeSimbolos(yytext,0,0); return ID; }
 
 "\n"      		
 "\t"
