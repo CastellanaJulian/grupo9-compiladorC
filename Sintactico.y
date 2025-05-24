@@ -170,6 +170,7 @@ int yylex();
 %token OP_EQUAL
 %token OP_LE
 %token OP_GE
+%token OP_NE
 %token CHAR_BIT
 %token CTE_INT
 %token COMA
@@ -284,10 +285,42 @@ termino:
 
 /* VER DE CAMBIARLO CON EL SINTACTICO DEL OTRO TP*/
 factor: 
-	ID {printf("    ID es Factor \n");}
-	| CTE_INT {printf("    CTE es Factor\n");}
-	| CTE_FLOAT {printf("    CTE es Factor\n");}
-	| PA expresion PC {printf("    Expresion entre parentesis es Factor\n");}
+    ID{
+        int posicion=buscarEnTablaDeSimbolos($<vals>1);
+        if(strcmp(tablaDeSimbolos[posicion].tipo,"")==0)
+        {
+            yyerrormsg("Variable sin declarar");
+        }
+        if(esAsignacion==1&&strcmp(tablaDeSimbolos[posicion].tipo,"String")==0&&strcmp(tipoAsignacion,"String")!=0)
+        {
+            yyerrormsg("Intenta asignar ID de distinto tipo(string)");
+        }
+        if(esAsignacion==1&&strcmp(tipoAsignacion,"Int")==0&&strcmp(tablaDeSimbolos[posicion].tipo,"Float")==0)
+        {
+            yyerrormsg("Intenta asignar variable float a un int");
+        }
+		
+        ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
+        printf("    ID es Factor \n");}
+    | CTE_INT{
+        if(esAsignacion==1&&strcmp(tipoAsignacion,"String")==0)
+        {
+            yyerrormsg("Intenta asignar CTE a un String");
+        }
+        ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
+        printf("    CTE es Factor\n");}
+    | CTE_FLOAT{
+        if(esAsignacion==1&&strcmp(tipoAsignacion,"String")==0)
+        {
+            yyerrormsg("Intenta asignar CTE de distinto tipo");
+        }
+        if(esAsignacion==1&&strcmp(tipoAsignacion,"Int")==0)
+        {
+            yyerrormsg("Intenta asignar CTE float a un int");
+        }
+        ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
+        printf("    CTE es Factor\n");}
+    | PA expresion PC {printf("    Expresion entre parentesis es Factor\n");}
 	| sum_first_primes {printf("    sumFirstPrimes es Factor\n");}
 	;
 
@@ -320,48 +353,277 @@ read:
 
 operador_comparacion:
 	OP_LOW
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
 	| OP_GREAT
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
 	| OP_EQUAL
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
 	| OP_LE
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
 	| OP_GE
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
+	| OP_NE
+	{
+		strcpy(ultimoComparador,$<vals>1);
+	}
 	;
 
 operador_logico:
-	AND
-	| OR
+	AND { ultimoOperadorLogico = and; }
+	| OR { ultimoOperadorLogico = or; }
 	;
 
 operador_negacion:
 	NOT
 	;
 
-comparacion:
-	expresion operador_comparacion expresion
-	| expresion operador_comparacion expresion operador_comparacion expresion
+while:
+	WHILE{
+			t_info info;
+			info.nro=contadorWhile++;
+			info.saltoElse=contadorPolaca;
+			ponerEnPila(&pilaWhile,&info);
+			tipoCondicion=condicionWhile;
+			ponerEnPolaca(&polaca,"ET");
+		} 
+		PA condicion PC bloque_ejecucion	
+		{
+			char aux[20];
+			sprintf(aux, "%d", topeDePila(&pilaWhile)->saltoElse);
+			ponerEnPolaca(&polaca,"BI");
+			ponerEnPolaca(&polaca, aux);
+			sprintf(aux, "%d", contadorPolaca);
+			switch (topeDePila(&pilaWhile)->andOr)
+			{
+			case condicionSimple:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+				break;
+			case and:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
+			case or:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
+				break;
+			}
+			sacarDePila(&pilaWhile);
+		}
 	;
 
-while:
-	WHILE PA operador_negacion PA comparacion PC PC bloque_ejecucion
-	| WHILE PA comparacion PC bloque_ejecucion
-	| WHILE PA comparacion operador_logico comparacion PC bloque_ejecucion
+condicion: comparacion
+			{
+				switch(tipoCondicion)
+				{
+					case condicionIf:
+						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca,obtenerSalto(inverso));
+						topeDePila(&pilaIf)->salto1=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						topeDePila(&pilaIf)->andOr = condicionSimple;
+						break;
+
+					case condicionWhile:
+						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca,obtenerSalto(inverso));
+						topeDePila(&pilaWhile)->salto1=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						topeDePila(&pilaWhile)->andOr = condicionSimple;
+						break;
+				}
+			}
+	|operador_negacion comparacion
+			{
+				switch(tipoCondicion)
+				{
+					case condicionIf:
+						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca,obtenerSalto(normal));
+						topeDePila(&pilaIf)->salto1=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						topeDePila(&pilaIf)->andOr = condicionSimple;
+						break;
+
+					case condicionWhile:
+						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca,obtenerSalto(normal));
+						topeDePila(&pilaWhile)->salto1=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						topeDePila(&pilaWhile)->andOr = condicionSimple;
+						break;
+				}
+			}
+	| comparacion operador_logico
+			{
+				switch(tipoCondicion)
+				{
+					case condicionIf:
+						switch(ultimoOperadorLogico){
+							case and:
+								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca,obtenerSalto(inverso));
+								topeDePila(&pilaIf)->salto1=contadorPolaca;
+								ponerEnPolaca(&polaca,"");
+								printf("%d", topeDePila(&pilaIf)->salto1);
+								topeDePila(&pilaIf)->andOr = and;
+								break;
+							case or:
+								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca,obtenerSalto(normal));
+								topeDePila(&pilaIf)->salto1=contadorPolaca;
+								ponerEnPolaca(&polaca,"");
+								topeDePila(&pilaIf)->andOr = or;
+								break;
+						}
+						break;
+
+					case condicionWhile:
+						switch(ultimoOperadorLogico){
+							case and:
+								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca,obtenerSalto(inverso));
+								topeDePila(&pilaWhile)->salto1=contadorPolaca;
+								ponerEnPolaca(&polaca,"");
+								topeDePila(&pilaWhile)->andOr = and;
+								break;
+
+							case or:
+								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca,obtenerSalto(normal));
+								topeDePila(&pilaWhile)->salto1=contadorPolaca;
+								ponerEnPolaca(&polaca,"");
+								topeDePila(&pilaWhile)->andOr = or;
+								break;
+						}
+						break;
+				}
+			}
+			comparacion
+				{
+					switch(tipoCondicion)
+					{
+						case condicionIf:
+							ponerEnPolaca(&polaca,"CMP");
+							ponerEnPolaca(&polaca,obtenerSalto(inverso));
+							topeDePila(&pilaIf)->salto2=contadorPolaca;
+							ponerEnPolaca(&polaca,"");
+							if(topeDePila(&pilaIf)->andOr == or){
+								char aux[20];
+								sprintf(aux, "%d", contadorPolaca);
+								ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+							}
+							break;
+
+						case condicionWhile:
+							ponerEnPolaca(&polaca,"CMP");
+							ponerEnPolaca(&polaca,obtenerSalto(inverso));
+							topeDePila(&pilaWhile)->salto2=contadorPolaca;
+							ponerEnPolaca(&polaca,"");
+							if(topeDePila(&pilaWhile)->andOr == or){
+								char aux[20];
+								sprintf(aux, "%d", contadorPolaca);
+								ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+							}
+							break;
+					}
+	            }
+comparacion:
+	expresion operador_comparacion expresion | PA comparacion PC
 	;
+
+
 
 if:
-	IF PA operador_negacion PA comparacion PC PC bloque_ejecucion
-	| IF PA operador_negacion PA comparacion PC PC bloque_ejecucion else
-	| IF PA comparacion PC bloque_ejecucion
-	| IF PA comparacion PC bloque_ejecucion else
-	| IF PA comparacion operador_logico comparacion PC bloque_ejecucion
-	| IF PA comparacion operador_logico comparacion PC bloque_ejecucion else
+	IF 
+		{
+			t_info info;
+			info.nro=contadorIf++;
+			ponerEnPila(&pilaIf,&info);
+			tipoCondicion=condicionIf;
+		}
+	PA condicion PC
+	{
+
+	}
+	resto
+	{
+		sacarDePila(&pilaIf);
+	}
 	;
 
 else:
-	ELSE bloque_ejecucion
+	ELSE
+	{
+		char aux[20];
+		sprintf(aux, "%d", contadorPolaca);
+		switch (topeDePila(&pilaIf)->andOr)
+		{
+		case condicionSimple:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+			break;
+		case and:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+		case or:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+			break;
+		}
+	}
+	bloque_ejecucion
+	{
+	
+		char aux[20];
+		sprintf(aux, "%d", contadorPolaca);
+		ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->saltoElse, aux);
+	}
 	;
 
 bloque_ejecucion:
 	LLA resto_programa LLC
 	;
+
+resto: 
+	bloque_ejecucion
+	{
+		char aux[20];
+		sprintf(aux, "%d", contadorPolaca);
+		
+		switch (topeDePila(&pilaIf)->andOr)
+		{
+		case condicionSimple:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+			break;
+		case and:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+		case or:
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+			break;
+		}
+	}
+	| bloque_ejecucion
+	{
+		char aux[20];
+		ponerEnPolaca(&polaca,"BI");
+		topeDePila(&pilaIf)->saltoElse = contadorPolaca;
+		ponerEnPolaca(&polaca, "");
+		if(topeDePila(&pilaIf)->andOr != or){
+			sprintf(aux, "%d", contadorPolaca);
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+		}
+	}
+	else
+	;
+
+
 %%
 
 int yyerror(void)

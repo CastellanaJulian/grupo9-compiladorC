@@ -83,6 +83,7 @@ OP_GREAT                ">"
 OP_EQUAL                "=="
 OP_LE                   "<="
 OP_GE                   ">="
+OP_NE                   "!="
 AND                     "AND"|"and"
 OR                      "OR"|"or"
 NOT                     "NOT"|"not"
@@ -154,6 +155,7 @@ COMMENT_CL              "+#"
 {OP_EQUAL}              { yylval.vals=strdup(yytext); return OP_EQUAL; }
 {OP_LE}                 { yylval.vals=strdup(yytext); return OP_LE; }
 {OP_GE}                 { yylval.vals=strdup(yytext); return OP_GE; }
+{OP_NE}                 { yylval.vals=strdup(yytext); return OP_NE; }
 {QUOTE}                 { return QUOTE; }
 {OP_DP}                 { return OP_DP; }
 
@@ -305,11 +307,15 @@ int crearTablaDeSimbolos()
 
 int buscarEnTablaDeSimbolos(char* objetive) {
 	int i;
-	for(i = 0; i < REGISTROS_MAXIMO; i++){
-		if(strcmp(tablaDeSimbolos[i].lexema, objetive) == 0)
+	for(i = 0; i < REGISTROS_MAXIMO; i++) {
+        if(strcmp(tablaDeSimbolos[i].lexema, objetive) == 0)
 		{
 			return i;
 		}
+            if(strcmp(tablaDeSimbolos[i].valor, objetive) == 0)
+            {
+                return i;
+            }
 	}
 	return -1;
 }
