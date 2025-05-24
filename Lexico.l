@@ -31,7 +31,6 @@ typedef struct {
 t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
 int registroTabla = 0;
 FILE  *yyin;
-int yylval;
 char *yyltext;
 int contVar = 0;
 int comentarioAnidado = 0;
@@ -133,9 +132,9 @@ COMMENT_CL              "+#"
 {STRING}                { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
 {BOOL}                  { return BOOL; }
 
-{CTE_INT}               { validarEntero(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
-{CTE_FLOAT}             { validarFlotante(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
-{CTE_STR}               { validarCadena(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
+{CTE_INT}               { validarEntero(yytext); yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
+{CTE_FLOAT}             { validarFlotante(yytext); yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
+{CTE_STR}               { validarCadena(yytext); yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_STR; }
 
 {WRITE}                 { return WRITE; }
 {READ}                  { return READ; }
@@ -150,15 +149,15 @@ COMMENT_CL              "+#"
 {SAC}                   { return SAC; }
 {SFP}                   { return SFP; }
 
-{OP_LOW}                { return OP_LOW; }
-{OP_GREAT}              { return OP_GREAT; }
-{OP_EQUAL}              { return OP_EQUAL; }
-{OP_LE}                 { return OP_LE; }
-{OP_GE}                 { return OP_GE; }
+{OP_LOW}                { yylval.vals=strdup(yytext); return OP_LOW; }
+{OP_GREAT}              { yylval.vals=strdup(yytext); return OP_GREAT; }
+{OP_EQUAL}              { yylval.vals=strdup(yytext); return OP_EQUAL; }
+{OP_LE}                 { yylval.vals=strdup(yytext); return OP_LE; }
+{OP_GE}                 { yylval.vals=strdup(yytext); return OP_GE; }
 {QUOTE}                 { return QUOTE; }
 {OP_DP}                 { return OP_DP; }
 
-{ID}                    { agregarATablaDeSimbolos(yytext,0,0); return ID; }
+{ID}                    { yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,0,0); return ID; }
 
 "\n"      		
 "\t"
@@ -261,7 +260,7 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
 	}
 };
 
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     if ((yyin = fopen(argv[1], "rt")) == NULL) {
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
@@ -273,7 +272,7 @@ int main(int argc, char *argv[])
     crearTablaDeSimbolos();
 	fclose(yyin);
     return SALIDA_EXITOSA;
-}
+}*/
 
 void mostrarTablaDeSimbolos()
 {
@@ -302,4 +301,15 @@ int crearTablaDeSimbolos()
     }
     fclose(pf);
     return SALIDA_EXITOSA;
+}
+
+int buscarEnTablaDeSimbolos(char* objetive) {
+	int i;
+	for(i = 0; i < REGISTROS_MAXIMO; i++){
+		if(strcmp(tablaDeSimbolos[i].lexema, objetive) == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
 }

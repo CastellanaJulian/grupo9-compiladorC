@@ -1,0 +1,10 @@
+INIT
+{
+   a,b,c,d:Int
+   e:String
+   f,g:Float
+}
+
+b = 2;
+a = 4 + b;
+x = 1;
