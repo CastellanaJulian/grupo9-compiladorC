@@ -2,7 +2,7 @@
 flex Lexico.l
 bison -dyv Sintactico.y
 
-gcc.exe lex.yy.c y.tab.c -o lyc-compiler-1.0.0.exe
+gcc.exe lex.yy.c y.tab.c Pila.c Polaca.c -o lyc-compiler-1.0.0.exe
 
 lyc-compiler-1.0.0.exe test.txt
 

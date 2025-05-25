@@ -6,36 +6,25 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "y.tab.h"
+#include "Pila.h"
+#include "Polaca.h"
 
 /******************* Defines *******************/
 
 #define LIMITE_SUPERIOR_ENTERO 65535
 #define REGISTROS_MAXIMO 1000
-#define CADENA_MAXIMA 32
 #define TRUE 1
 #define FALSE 0
-#define ERROR -1
-#define OK 3
 #define VACIO ""
-
-#define CMP "CMP"
-#define BEQ "BEQ"
-#define BNE "BNE"
-#define BGT "BGT"
-#define BGE "BGE"
-#define BLT "BLT"
-#define BLE "BLE"
 
 /******************* Enums *******************/
 
-enum EnumTipoSalto
+enum EnumTipoCondicion
 {
-	normal,
-	inverso
+	condicionIf,
+	condicionWhile
 };
-enum and_or { and, or, condicionSimple };
-enum tipoDato { tipoInt, tipoFloat, tipoString, sinTipo };
-enum tipoCondicion { condicionIf, condicionWhile };
+
 enum EnumOperacion
 {
 	asignacion,
@@ -47,46 +36,11 @@ enum EnumOperacion
 
 typedef struct
 {
-	int cantExpresiones;
-	int salto1;
-	int salto2;
-	int saltoElse;
-	int nro;
-	enum and_or andOr;
-	enum tipoDato tipo;
-} t_info;
-
-typedef struct
-{
     char lexema[50];
     char tipo[50];
     char valor[50];
     int longitud;
 } t_symbol_table;
-
-typedef struct
-{
-	char cadena[CADENA_MAXIMA];
-	int nro;
-} t_infoPolaca;
-
-typedef struct s_nodoPolaca
-{
-	t_infoPolaca info;
-	struct s_nodoPolaca* psig;
-} t_nodoPolaca;
-
-typedef t_nodoPolaca *t_polaca;
-
-typedef struct s_nodoPila
-{
-	t_info info;
-	struct s_nodoPila* psig;
-} t_nodoPila;
-
-typedef t_nodoPila *t_pila;
-t_pila pilaIf;
-t_pila pilaWhile;
 
 /******************* Declaraciones Implicitas *******************/
 
@@ -94,50 +48,35 @@ extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
 extern int crearTablaDeSimbolos();
 extern t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
-extern char*yytext;
+extern char* yytext;
 extern int yylineno;
 
 /******************* Funciones *******************/
 
-void guardarPolaca(t_polaca*);
-int ponerEnPolacaNro(t_polaca*,int, char *);
-int ponerEnPolaca(t_polaca*, char *);
-void crearPolaca(t_polaca*);
-char* obtenerSalto(enum EnumTipoSalto);
-
-void vaciarPila(t_pila*);
-t_info* sacarDePila(t_pila*);
-void crearPila(t_pila*);
-int ponerEnPila(t_pila*,t_info*);
-t_info* topeDePila(t_pila*);
-
-t_info* topeDePila(t_pila*);
-t_info* sacarDePila(t_pila*);
 int yyerror();
 int yylex();
-
-bool is_prime (int n);
+bool is_prime (int numero);
 
 /******************* Variables Globales *******************/
 
-t_polaca polaca;
-int contadorPolaca = 0;
-char ultimoComparador[3];
+Pila pilaIf;
+Pila pilaWhile;
+Polaca polaca;
+
 enum and_or ultimoOperadorLogico;
 
 int indicesParaAsignarTipo[REGISTROS_MAXIMO];
-int contadorListaVar=0;
+int contadorListaVar = 0;
 enum EnumOperacion operacion;
 enum EnumOperacion operacionAuxiliar;
 char tipoAsignacion[50];
-char tipoAsignacionAuxiliar[50];
-
-int yystopparser = 0;
-FILE  *yyin;
 
 int contadorIf = 0;
 int contadorWhile = 0;
-enum tipoCondicion tipoCondicion;
+enum EnumTipoCondicion tipoCondicion;
+
+int yystopparser = 0;
+FILE  *yyin;
 
 %}
 
@@ -222,11 +161,11 @@ lista_variables:
 bloque_declaraciones:
 	lista_variables OP_DP tipo
 	{
-		contadorListaVar=0;
+		contadorListaVar = 0;
 	}
 	| bloque_declaraciones lista_variables OP_DP tipo
 	{
-		contadorListaVar=0;
+		contadorListaVar = 0;
 	}
 ;
 
@@ -286,8 +225,8 @@ asignacion:
 			yyerrormsg("Variable sin declarar");
 		}
 		operacion = asignacion;
-		strcpy(tipoAsignacion,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo);
-		ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
+		strcpy(tipoAsignacion, tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo);
+		ponerEnPolaca(&polaca, tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
 	}
 	OP_AS expresion
 	{
@@ -357,7 +296,7 @@ termino:
 		}
 	| termino OP_DIV
 		{
-			if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
+			if (operacion == asignacion && strcmp(tipoAsignacion,"String") == 0)
 			{
 				yyerrormsg("Operacion invalida con string");
 			}
@@ -575,7 +514,7 @@ write:
 	| WRITE PA ID
 	{
 		int posicion = buscarEnTablaDeSimbolos($<vals>3);
-        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
+        if (strcmp(tablaDeSimbolos[posicion].tipo, VACIO) == 0)
         {
             yyerrormsg("Variable sin declarar");
         }
@@ -588,7 +527,7 @@ read:
 	| READ PA ID
 	{
 		int posicion = buscarEnTablaDeSimbolos($<vals>3);
-        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
+        if (strcmp(tablaDeSimbolos[posicion].tipo, VACIO) == 0)
         {
             yyerrormsg("Variable sin declarar");
         }
@@ -615,18 +554,18 @@ operador_negacion: NOT ;
 while:
 	WHILE
 	{
-		t_info info;
+		Informacion info;
 		info.nro = contadorWhile++;
 		info.saltoElse = contadorPolaca;
 		ponerEnPila(&pilaWhile, &info);
 		tipoCondicion = condicionWhile;
-		ponerEnPolaca(&polaca, "ET");
+		ponerEnPolaca(&polaca, ET);
 	} 
 	PA condicion PC bloque_ejecucion	
 	{
 		char aux[20];
 		sprintf(aux, "%d", topeDePila(&pilaWhile)->saltoElse);
-		ponerEnPolaca(&polaca,"BI");
+		ponerEnPolaca(&polaca, BI);
 		ponerEnPolaca(&polaca, aux);
 		sprintf(aux, "%d", contadorPolaca);
 		switch (topeDePila(&pilaWhile)->andOr)
@@ -668,110 +607,109 @@ condicion:
 		}
 	}
 	|operador_negacion comparacion
-			{
-				switch(tipoCondicion)
-				{
-					case condicionIf:
-						ponerEnPolaca(&polaca, CMP);
-						ponerEnPolaca(&polaca,obtenerSalto(normal));
-						topeDePila(&pilaIf)->salto1=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						topeDePila(&pilaIf)->andOr = condicionSimple;
-						break;
+	{
+		switch(tipoCondicion)
+		{
+			case condicionIf:
+				ponerEnPolaca(&polaca, CMP);
+				ponerEnPolaca(&polaca,obtenerSalto(normal));
+				topeDePila(&pilaIf)->salto1=contadorPolaca;
+				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaIf)->andOr = condicionSimple;
+				break;
 
-					case condicionWhile:
-						ponerEnPolaca(&polaca, CMP);
-						ponerEnPolaca(&polaca,obtenerSalto(normal));
-						topeDePila(&pilaWhile)->salto1=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						topeDePila(&pilaWhile)->andOr = condicionSimple;
-						break;
-				}
-			}
+			case condicionWhile:
+				ponerEnPolaca(&polaca, CMP);
+				ponerEnPolaca(&polaca,obtenerSalto(normal));
+				topeDePila(&pilaWhile)->salto1=contadorPolaca;
+				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaWhile)->andOr = condicionSimple;
+				break;
+		}
+	}
 	| comparacion operador_logico
+		{
+			switch(tipoCondicion)
 			{
-				switch(tipoCondicion)
-				{
-					case condicionIf:
-						switch(ultimoOperadorLogico){
-							case and:
-								ponerEnPolaca(&polaca, CMP);
-								ponerEnPolaca(&polaca,obtenerSalto(inverso));
-								topeDePila(&pilaIf)->salto1=contadorPolaca;
-								ponerEnPolaca(&polaca,"");
-								printf("%d", topeDePila(&pilaIf)->salto1);
-								topeDePila(&pilaIf)->andOr = and;
-								break;
-							case or:
-								ponerEnPolaca(&polaca, CMP);
-								ponerEnPolaca(&polaca,obtenerSalto(normal));
-								topeDePila(&pilaIf)->salto1=contadorPolaca;
-								ponerEnPolaca(&polaca,"");
-								topeDePila(&pilaIf)->andOr = or;
-								break;
-						}
-						break;
-
-					case condicionWhile:
-						switch(ultimoOperadorLogico){
-							case and:
-								ponerEnPolaca(&polaca, CMP);
-								ponerEnPolaca(&polaca,obtenerSalto(inverso));
-								topeDePila(&pilaWhile)->salto1=contadorPolaca;
-								ponerEnPolaca(&polaca,"");
-								topeDePila(&pilaWhile)->andOr = and;
-								break;
-
-							case or:
-								ponerEnPolaca(&polaca, CMP);
-								ponerEnPolaca(&polaca,obtenerSalto(normal));
-								topeDePila(&pilaWhile)->salto1=contadorPolaca;
-								ponerEnPolaca(&polaca,"");
-								topeDePila(&pilaWhile)->andOr = or;
-								break;
-						}
-						break;
-				}
-			}
-			comparacion
-				{
-					switch(tipoCondicion)
-					{
-						case condicionIf:
+				case condicionIf:
+					switch(ultimoOperadorLogico){
+						case and:
 							ponerEnPolaca(&polaca, CMP);
 							ponerEnPolaca(&polaca,obtenerSalto(inverso));
-							topeDePila(&pilaIf)->salto2=contadorPolaca;
+							topeDePila(&pilaIf)->salto1=contadorPolaca;
 							ponerEnPolaca(&polaca,"");
-							if(topeDePila(&pilaIf)->andOr == or){
-								char aux[20];
-								sprintf(aux, "%d", contadorPolaca);
-								ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-							}
+							printf("%d", topeDePila(&pilaIf)->salto1);
+							topeDePila(&pilaIf)->andOr = and;
 							break;
-
-						case condicionWhile:
+						case or:
 							ponerEnPolaca(&polaca, CMP);
-							ponerEnPolaca(&polaca,obtenerSalto(inverso));
-							topeDePila(&pilaWhile)->salto2=contadorPolaca;
+							ponerEnPolaca(&polaca,obtenerSalto(normal));
+							topeDePila(&pilaIf)->salto1=contadorPolaca;
 							ponerEnPolaca(&polaca,"");
-							if(topeDePila(&pilaWhile)->andOr == or){
-								char aux[20];
-								sprintf(aux, "%d", contadorPolaca);
-								ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
-							}
+							topeDePila(&pilaIf)->andOr = or;
 							break;
 					}
-	            }
-	
-	comparacion:
-		expresion operador_comparacion expresion
-		| PA comparacion PC
+					break;
+
+				case condicionWhile:
+					switch(ultimoOperadorLogico){
+						case and:
+							ponerEnPolaca(&polaca, CMP);
+							ponerEnPolaca(&polaca,obtenerSalto(inverso));
+							topeDePila(&pilaWhile)->salto1=contadorPolaca;
+							ponerEnPolaca(&polaca,"");
+							topeDePila(&pilaWhile)->andOr = and;
+							break;
+
+						case or:
+							ponerEnPolaca(&polaca, CMP);
+							ponerEnPolaca(&polaca,obtenerSalto(normal));
+							topeDePila(&pilaWhile)->salto1=contadorPolaca;
+							ponerEnPolaca(&polaca,"");
+							topeDePila(&pilaWhile)->andOr = or;
+							break;
+					}
+					break;
+			}
+		}
+		comparacion
+			{
+				switch(tipoCondicion)
+				{
+					case condicionIf:
+						ponerEnPolaca(&polaca, CMP);
+						ponerEnPolaca(&polaca,obtenerSalto(inverso));
+						topeDePila(&pilaIf)->salto2=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						if(topeDePila(&pilaIf)->andOr == or){
+							char aux[20];
+							sprintf(aux, "%d", contadorPolaca);
+							ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+						}
+						break;
+
+					case condicionWhile:
+						ponerEnPolaca(&polaca, CMP);
+						ponerEnPolaca(&polaca,obtenerSalto(inverso));
+						topeDePila(&pilaWhile)->salto2=contadorPolaca;
+						ponerEnPolaca(&polaca,"");
+						if(topeDePila(&pilaWhile)->andOr == or){
+							char aux[20];
+							sprintf(aux, "%d", contadorPolaca);
+							ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+						}
+						break;
+				}
+			}
+		comparacion:
+			expresion operador_comparacion expresion
+			| PA comparacion PC
 ;
 
 if:
 	IF 
 		{
-			t_info info;
+			Informacion info;
 			info.nro=contadorIf++;
 			ponerEnPila(&pilaIf,&info);
 			tipoCondicion=condicionIf;
@@ -780,7 +718,7 @@ if:
 	{
 		sacarDePila(&pilaIf);
 	}
-	;
+;
 
 else:
 	ELSE
@@ -831,16 +769,17 @@ resto:
 	| bloque_ejecucion
 	{
 		char aux[20];
-		ponerEnPolaca(&polaca,"BI");
+		ponerEnPolaca(&polaca, BI);
 		topeDePila(&pilaIf)->saltoElse = contadorPolaca;
-		ponerEnPolaca(&polaca, "");
-		if(topeDePila(&pilaIf)->andOr != or){
+		ponerEnPolaca(&polaca, VACIO);
+		if(topeDePila(&pilaIf)->andOr != or)
+		{
 			sprintf(aux, "%d", contadorPolaca);
 			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
 		}
 	}
 	else
-	;
+;
 
 %%
 
@@ -857,167 +796,6 @@ int yyerrormsg(const char * msg)
   	system ("Pause");
     exit (1);
 }
-
-/****************************** Métodos Polaca (Primitivas) ******************************/
-
-void crearPolaca(t_polaca* pp)
-{
-    *pp=NULL;
-}
-
-int ponerEnPolaca(t_polaca* pp, char *cadena)
-{
-	printf("ponerEnPolaca: cadena %s\n",cadena);
-    t_nodoPolaca* pn = (t_nodoPolaca*)malloc(sizeof(t_nodoPolaca));
-    if(!pn)
-    {
-    	printf("ponerEnPolaca: Error al solicitar memoria\n");
-        return ERROR;
-    }
-    t_nodoPolaca* aux;
-    strcpy(pn->info.cadena,cadena);
-    pn->info.nro=contadorPolaca++;
-    pn->psig=NULL;
-    if(!*pp)
-    {
-    	*pp=pn;
-    	return OK;
-    }
-    else
-    {
-    	aux=*pp;
-    	while(aux->psig)
-        	aux=aux->psig;
-        aux->psig=pn;
-    	return OK;
-    }
-}
-
-int ponerEnPolacaNro(t_polaca* pp,int pos, char *cadena)
-{
-	t_nodoPolaca* aux;
-	aux=*pp;
-    while(aux!=NULL && aux->info.nro<pos)
-    {
-    	aux=aux->psig;
-    }
-    if(aux->info.nro==pos)
-    {
-    	strcpy(aux->info.cadena,cadena);
-    	return OK;
-    }
-    else
-    {
-    	printf("NO ENCONTRADO\n");
-    	return ERROR;
-    }
-    return ERROR;
-}
-
-void guardarPolaca(t_polaca *pp)
-{
-	FILE*pt = fopen("intermediate-code.txt","w+");
-	t_nodoPolaca* pn;
-	if(!pt)
-	{
-		printf("Error al crear el archivo intermedio.\n");
-		return;
-	}
-	while(*pp)
-    {
-        pn=*pp;
-        fprintf(pt, "%s\n",pn->info.cadena);
-        *pp=(*pp)->psig;
-        free(pn);
-    }
-	
-	fclose(pt);
-}
-
-char* obtenerSalto(enum EnumTipoSalto tipo)
-{
-	switch(tipo)
-	{
-		case normal:
-			if(strcmp(ultimoComparador,"==")==0)
-				return(BEQ);
-			if(strcmp(ultimoComparador,">")==0)
-				return(BGT);
-			if(strcmp(ultimoComparador,"<")==0)
-				return(BLT);
-			if(strcmp(ultimoComparador,">=")==0)
-				return(BGE);
-			if(strcmp(ultimoComparador,"<=")==0)
-				return(BLE);
-			if(strcmp(ultimoComparador,"!=")==0)
-				return(BNE);
-			break;
-
-		case inverso:
-			if(strcmp(ultimoComparador,"==")==0)
-				return(BNE);
-			if(strcmp(ultimoComparador,">")==0)
-				return(BLE);
-			if(strcmp(ultimoComparador,"<")==0)
-				return(BGE);
-			if(strcmp(ultimoComparador,">=")==0)
-				return(BLT);
-			if(strcmp(ultimoComparador,"<=")==0)
-				return(BGT);
-			if(strcmp(ultimoComparador,"!=")==0)
-				return(BEQ);
-			break;
-	}
-}
-
-/****************************** Métodos pila (Primitivas) ******************************/
-
-void crearPila(t_pila* pp)
-{
-    *pp=NULL;
-}
-
-int ponerEnPila(t_pila* pp,t_info* info)
-{
-    t_nodoPila* pn=(t_nodoPila*)malloc(sizeof(t_nodoPila));
-    if(!pn)
-	{
-        return 0;
-	}
-    pn->info=*info;
-    pn->psig=*pp;
-    *pp=pn;
-    return 1;
-}
-
-t_info * sacarDePila(t_pila* pp)
-{
-	t_info* info = (t_info *) malloc(sizeof(t_info));
-    if(!*pp){
-    	return NULL;
-    }
-    *info=(*pp)->info;
-    *pp=(*pp)->psig;
-    return info;
-}
-
-void vaciarPila(t_pila* pp)
-{
-    t_nodoPila* pn;
-    while(*pp)
-    {
-        pn=*pp;
-        *pp=(*pp)->psig;
-        free(pn);
-    }
-}
-
-t_info* topeDePila(t_pila* pila)
-{
-	return &((*pila)->info);
-}
-
-/*********************************************************************************/
 
 int main(int argc, char *argv[])
 {
@@ -1038,18 +816,18 @@ int main(int argc, char *argv[])
   	return 0;
 }
 
-bool is_prime (int n)
+bool is_prime (int numero)
 {
-  if (n % 2 == 0)
+  if (numero % 2 == 0)
   {
-    return n == 2;
+    return numero == 2;
   }
-  for (int test_factor = 3; test_factor <= n / test_factor; test_factor += 2)
+  for (int test_factor = 3; test_factor <= numero / test_factor; test_factor += 2)
   {
-    if (n % test_factor == 0)
+    if (numero % test_factor == 0)
 	{
       return FALSE;
     }
   }
-  return n > 1;
+  return numero > 1;
 }
