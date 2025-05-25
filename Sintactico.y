@@ -940,32 +940,32 @@ char* obtenerSalto(enum EnumTipoSalto tipo)
 	{
 		case normal:
 			if(strcmp(ultimoComparador,"==")==0)
-				return("BEQ");
+				return(BEQ);
 			if(strcmp(ultimoComparador,">")==0)
-				return("BGT");
+				return(BGT);
 			if(strcmp(ultimoComparador,"<")==0)
-				return("BLT");
+				return(BLT);
 			if(strcmp(ultimoComparador,">=")==0)
-				return("BGE");
+				return(BGE);
 			if(strcmp(ultimoComparador,"<=")==0)
-				return("BLE");
+				return(BLE);
 			if(strcmp(ultimoComparador,"!=")==0)
-				return("BNE");
+				return(BNE);
 			break;
 
 		case inverso:
 			if(strcmp(ultimoComparador,"==")==0)
-				return("BNE");
+				return(BNE);
 			if(strcmp(ultimoComparador,">")==0)
-				return("BLE");
+				return(BLE);
 			if(strcmp(ultimoComparador,"<")==0)
-				return("BGE");
+				return(BGE);
 			if(strcmp(ultimoComparador,">=")==0)
-				return("BLT");
+				return(BLT);
 			if(strcmp(ultimoComparador,"<=")==0)
-				return("BGT");
+				return(BGT);
 			if(strcmp(ultimoComparador,"!=")==0)
-				return("BEQ");
+				return(BEQ);
 			break;
 	}
 }
@@ -981,7 +981,9 @@ int ponerEnPila(t_pila* pp,t_info* info)
 {
     t_nodoPila* pn=(t_nodoPila*)malloc(sizeof(t_nodoPila));
     if(!pn)
+	{
         return 0;
+	}
     pn->info=*info;
     pn->psig=*pp;
     *pp=pn;
@@ -997,7 +999,6 @@ t_info * sacarDePila(t_pila* pp)
     *info=(*pp)->info;
     *pp=(*pp)->psig;
     return info;
-
 }
 
 void vaciarPila(t_pila* pp)
