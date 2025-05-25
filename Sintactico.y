@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "y.tab.h"
 
+#define LIMITE_SUPERIOR_ENTERO 65535
 #define REGISTROS_MAXIMO 1000
 #define CADENA_MAXIMA 32
 #define TRUE 1
@@ -464,6 +465,10 @@ sum_first_primes:
 				ponerEnPolaca(&polaca, "+");
 			}
 			x++;
+			if(x >= LIMITE_SUPERIOR_ENTERO)
+			{
+				yyerrormsg("El valor resultante supera la cota de enteros");         
+			}
 		}
 	}
 	PC

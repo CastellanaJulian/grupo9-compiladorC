@@ -5,5 +5,5 @@ INIT
    f,g:Float
 }
 
-a = sumFirstPrimes(1);
+a = sumFirstPrimes(10000);
 
