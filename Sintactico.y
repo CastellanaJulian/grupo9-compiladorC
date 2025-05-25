@@ -785,7 +785,7 @@ resto:
 
 int yyerror(void)
 {
-    printf("Error Sintactico\n");
+	printf("Error Sintactico\n");
 	exit (1);
 }
 
@@ -793,41 +793,41 @@ int yyerrormsg(const char * msg)
 {
 	printf("[Linea %d] ",yylineno);
 	printf("Error Sintactico: %s\n",msg);
-  	system ("Pause");
-    exit (1);
+	system ("Pause");
+	exit (1);
 }
 
 int main(int argc, char *argv[])
 {
 	crearPila(&pilaIf);
 	crearPolaca(&polaca);
-    if ((yyin = fopen(argv[1], "rt")) == NULL)
+	if ((yyin = fopen(argv[1], "rt")) == NULL)
 	{
-        printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-    }
+		printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
+	}
 	else
 	{ 
-    	yyparse();
-    }
-    // mostrarTablaDeSimbolos(); Función para realizar el debug de la tabla de simbolos.
-    crearTablaDeSimbolos();
+		yyparse();
+	}
+	// mostrarTablaDeSimbolos(); Función para realizar el debug de la tabla de simbolos.
+	crearTablaDeSimbolos();
 	fclose(yyin);
 	guardarPolaca(&polaca);
-  	return 0;
+	return 0;
 }
 
 bool is_prime (int numero)
 {
-  if (numero % 2 == 0)
-  {
-    return numero == 2;
-  }
-  for (int test_factor = 3; test_factor <= numero / test_factor; test_factor += 2)
-  {
-    if (numero % test_factor == 0)
+	if (numero % 2 == 0)
 	{
-      return FALSE;
-    }
-  }
-  return numero > 1;
+	return numero == 2;
+	}
+	for (int test_factor = 3; test_factor <= numero / test_factor; test_factor += 2)
+	{
+	if (numero % test_factor == 0)
+	{
+	  return FALSE;
+	}
+	}
+	return numero > 1;
 }
