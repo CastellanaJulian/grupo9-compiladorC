@@ -296,26 +296,28 @@ int crearTablaDeSimbolos()
     {
         return ERROR_ARCHIVO;
     }
-    fprintf(pf, "\n%8s\t|\t%8s\t|\t%8s\t|\t%8s\n", "Nombre", "Valor", "Tipo", "Longitud");
+    fprintf(pf, "%8s\t|\t%8s\t|\t%8s\t|\t%8s\n", "Nombre", "Valor", "Tipo", "Longitud");
     for(i = 0; i < registroTabla; i++)
     {
-        fprintf(pf, "\n%8s\t|\t%8s\t|\t%8s\t|\t%8d\n", tablaDeSimbolos[i].lexema, tablaDeSimbolos[i].valor, tablaDeSimbolos[i].tipo, tablaDeSimbolos[i].longitud);
+        fprintf(pf, "%8s\t|\t%8s\t|\t%8s\t|\t%8d\n", tablaDeSimbolos[i].lexema, tablaDeSimbolos[i].valor, tablaDeSimbolos[i].tipo, tablaDeSimbolos[i].longitud);
     }
     fclose(pf);
     return SALIDA_EXITOSA;
 }
 
-int buscarEnTablaDeSimbolos(char* objetive) {
+int buscarEnTablaDeSimbolos (char* nombre)
+{
 	int i;
-	for(i = 0; i < REGISTROS_MAXIMO; i++) {
-        if(strcmp(tablaDeSimbolos[i].lexema, objetive) == 0)
+	for(i = 0; i < REGISTROS_MAXIMO; i++)
+    {
+        if(strcmp(tablaDeSimbolos[i].lexema, nombre) == 0)
 		{
 			return i;
 		}
-            if(strcmp(tablaDeSimbolos[i].valor, objetive) == 0)
-            {
-                return i;
-            }
+        if(strcmp(tablaDeSimbolos[i].valor, nombre) == 0)
+        {
+            return i;
+        }
 	}
 	return -1;
 }

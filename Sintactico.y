@@ -4,34 +4,28 @@
 #include <stdlib.h>
 #include "y.tab.h"
 
-/* defines */
-/* REFACTORIZAR CON EL LEXICO*/
-#define MAX_REGS 1000
+#define REGISTROS_MAXIMO 1000
 #define CADENA_MAXIMA 32
 #define TRUE 1
 #define FALSE 0
 #define ERROR -1
 #define OK 3
 
-/* enums */
-enum tipoSalto{
-	normal,
-	inverso
+/******************* Enums *******************/
+
+enum tipoSalto { normal, inverso };
+enum and_or { and, or, condicionSimple };
+enum tipoDato { tipoInt, tipoFloat, tipoString, sinTipo };
+enum tipoCondicion { condicionIf, condicionWhile };
+enum EnumOperacion {
+	asignacion,
+	logica,
+	texto,
 };
 
-enum and_or{
-	and,
-	or,
-	condicionSimple
-};
+/*******************************************/
 
-enum tipoDato{
-	tipoInt,
-	tipoFloat,
-	tipoString,
-	sinTipo
-};
-
+/* Estructuras */
 typedef struct
 {
 	int cantExpresiones;
@@ -41,16 +35,10 @@ typedef struct
 	int nro;
 	enum and_or andOr;
 	enum tipoDato tipo;
-}t_info;
+} t_info;
 
-enum tipoCondicion{
-	condicionIf,
-	condicionWhile
-};
-
-/* structs */
-
-typedef struct {
+typedef struct
+{
     char lexema[50];
     char tipo[50];
     char valor[50];
@@ -61,31 +49,35 @@ typedef struct
 {
 	char cadena[CADENA_MAXIMA];
 	int nro;
-}t_infoPolaca;
+} t_infoPolaca;
 
-typedef struct s_nodoPolaca{
+typedef struct s_nodoPolaca
+{
 	t_infoPolaca info;
 	struct s_nodoPolaca* psig;
-}t_nodoPolaca;
+} t_nodoPolaca;
 
 typedef t_nodoPolaca *t_polaca;
 
-typedef struct s_nodoPila{
-    	t_info info;
-    	struct s_nodoPila* psig;
-	}t_nodoPila;
+typedef struct s_nodoPila
+{
+	t_info info;
+	struct s_nodoPila* psig;
+} t_nodoPila;
 
 typedef t_nodoPila *t_pila;
 t_pila pilaIf;
-
 t_pila pilaWhile;
 
-/* DECLARACIONES IMPLICITAS */
+/* Declaraciones Implicitass*/
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
 extern int crearTablaDeSimbolos();
+extern t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
+extern char*yytext;
+extern int yylineno;
 
-/* funciones */
+/* Funciones */
 void guardarPolaca(t_polaca*);
 int ponerEnPolacaNro(t_polaca*,int, char *);
 int ponerEnPolaca(t_polaca*, char *);
@@ -100,30 +92,22 @@ t_info* topeDePila(t_pila*);
 
 t_info* topeDePila(t_pila*);
 t_info* sacarDePila(t_pila*);
-int contadorIf=0;
-int contadorWhile=0;
+int contadorIf = 0;
+int contadorWhile = 0;
 enum tipoCondicion tipoCondicion;
 
-/* variables globales */
-
-extern t_symbol_table tablaDeSimbolos[MAX_REGS];
-
+/* Variables Globales */
 t_polaca polaca;
-int contadorPolaca=0;
+int contadorPolaca = 0;
 char ultimoComparador[3];
 enum and_or ultimoOperadorLogico;
 
-int indicesParaAsignarTipo[MAX_REGS];
+int indicesParaAsignarTipo[REGISTROS_MAXIMO];
 int contadorListaVar=0;
-int esAsignacion;
+enum EnumOperacion operacion;
+enum EnumOperacion operacionAuxiliar;
 char tipoAsignacion[50];
-
-int avgNumero=0;
-int avg[MAX_REGS];
-int contadorAvg[MAX_REGS];
-
-extern char*yytext;
-extern int yylineno;
+char tipoAsignacionAuxiliar[50];
 
 int yystopparser = 0;
 FILE  *yyin;
@@ -228,100 +212,207 @@ asignacion:
 	ID
 	{
 		// Comparar haciendo enums
-		if(strcmp(tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo, "") == 0)
+		if (strcmp(tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo, "") == 0)
 		{
 			yyerrormsg("Variable sin declarar");
 		}
-		esAsignacion=1;
+		operacion = asignacion;
 		strcpy(tipoAsignacion,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo);
 		ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
 	}
-		OP_AS expresion  {
-		esAsignacion=0;
+	OP_AS expresion
+	{
+		operacion = logica;
 		strcpy(tipoAsignacion,"VARIABLE");
 		ponerEnPolaca(&polaca,"=");
-	} OP_ENDLINE {printf("    ID = Expresion es ASIGNACION\n");}
-	;
+	}
+	OP_ENDLINE
+	{
+		printf("    ID = Expresion es ASIGNACION\n");
+	}
+;
 
 expresion:
-	termino {printf("Termino es Expresion\n");}
-	| expresion OP_SUM{
-			if(esAsignacion==1&&strcmp(tipoAsignacion,"STRING")==0)
+	termino
+	{
+		printf("Termino es Expresion\n");
+	}
+	| expresion OP_SUM
+		{
+			// String e;
+			// e = 2 + "HOLA MUNDO";
+			// e = "HOLA MUNDO" + 2;
+			if(operacion == asignacion && strcmp(tipoAsignacion,"String") == 0)
 			{
-				yyerrormsg("Operacion invalida en suma(Intenta asignar un numero a un string)");
+				yyerrormsg("Operacion invalida con string");
 			}
-		}termino{ponerEnPolaca(&polaca,"+");} {printf("Expresion+Termino es Expresion\n");}
-	| expresion OP_RES{
-			if(esAsignacion==1&&strcmp(tipoAsignacion,"STRING")==0)
+		}
+		termino
+		{
+			ponerEnPolaca(&polaca,"+");
+			printf("Expresion + Termino es Expresion\n");
+		}
+	| expresion OP_RES
+		{
+			// String e;
+			// e = 2 - "HOLA MUNDO";
+			// e = "HOLA MUNDO" - 2;
+			if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
 			{
-				yyerrormsg("Operacion invalida en resta(Intenta asignar un numero a un string)");
+				yyerrormsg("Operacion invalida con string");
 			}
-		} termino{ponerEnPolaca(&polaca,"-");} {printf("Expresion-Termino es Expresion\n");}
-	| CTE_STR{
-			if(esAsignacion==1&&strcmp(tipoAsignacion,"STRING")!=0)
-			{
-				yyerrormsg("Operacion invalida, Intenta asignar un string a un numero");
-			}
-		} {printf("CTE_STR es Expresion\n");}
-	/* AGREGAR COLOCAR EN POLACA*/
-	| slice_and_concat {printf("    sliceAndConcat es Expresion\n");}
+		}
+		termino
+		{
+			ponerEnPolaca(&polaca,"-");
+			printf("Expresion - Termino es Expresion\n");
+		}
 	;
 
 termino: 
-   factor {printf("Factor es Termino\n");}
-   | termino OP_MUL{
-			if(esAsignacion==1&&strcmp(tipoAsignacion,"STRING")==0)
-			{
-				yyerrormsg("Operacion invalida en multiplicacion(multiplica un numero a un string)");
-			}
-		} factor{ponerEnPolaca(&polaca,"*");} {printf(" Termino*Factor es Termino\n");}
+   factor
+   {
+		printf("Factor es Termino\n");
+	}
+   | termino OP_MUL
+   {
+		if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+		{
+			yyerrormsg("Operacion invalida con string");
+		}
+	} factor{ponerEnPolaca(&polaca,"*");} {printf(" Termino*Factor es Termino\n");}
    | termino OP_DIV{
-			if(esAsignacion==1&&strcmp(tipoAsignacion,"STRING")==0)
+			if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
 			{
-				yyerrormsg("Operacion invalida en division(Divide un numero a un string)");
+				yyerrormsg("Operacion invalida con string");
 			}
 		} factor{ponerEnPolaca(&polaca,"/");} {printf(" Termino/Factor es Termino\n");}
    ;
 
-/* VER DE CAMBIARLO CON EL SINTACTICO DEL OTRO TP*/
 factor: 
-    ID{
-        int posicion=buscarEnTablaDeSimbolos($<vals>1);
-        if(strcmp(tablaDeSimbolos[posicion].tipo,"")==0)
+    ID
+	{
+        int posicion = buscarEnTablaDeSimbolos($<vals>1);
+		// x = 1;
+        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
         {
             yyerrormsg("Variable sin declarar");
         }
-        if(esAsignacion==1&&strcmp(tablaDeSimbolos[posicion].tipo,"String")==0&&strcmp(tipoAsignacion,"String")!=0)
+		// int a;
+		// String e;
+		// a = e;
+        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "String") == 0 && strcmp(tipoAsignacion, "String") != 0)
         {
-            yyerrormsg("Intenta asignar ID de distinto tipo(string)");
+            yyerrormsg("Intenta asignar ID de distinto tipo (string)");
         }
-        if(esAsignacion==1&&strcmp(tipoAsignacion,"Int")==0&&strcmp(tablaDeSimbolos[posicion].tipo,"Float")==0)
+		// int a;
+		// float b;
+		// a = b;
+        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "Float") == 0 && strcmp(tipoAsignacion,"Int") == 0)
         {
             yyerrormsg("Intenta asignar variable float a un int");
         }
-		
+		// int a;
+		// String e;
+		// a = e;
+
+		// float a;
+		// String e;
+		// a = e;
+		if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "String") != 0 && strcmp(tipoAsignacion, "String") == 0)
+        {
+            yyerrormsg("Intenta asignar ID de distinto tipo (Int o Float)");
+        }
+		// String e = "HOLA MUNDO";
+		// if (e == "HOLA MUNDO") { }
+		if (operacion == logica && strcmp(tablaDeSimbolos[posicion].tipo, "String") == 0)
+        {
+            yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
+        }
+		// int a = 1;
+		// sliceAndConcat(3, 6, a, "verde", TRUE); (En el tercer parametro deberia ir un String)
+		if (operacion == texto && strcmp(tablaDeSimbolos[posicion].tipo, "String") != 0)
+        {
+            yyerrormsg("Operacion invalida con string");
+        }
         ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
-        printf("    ID es Factor \n");}
-    | CTE_INT{
-        if(esAsignacion==1&&strcmp(tipoAsignacion,"String")==0)
+        printf("    ID es Factor \n");
+	}
+	| CTE_INT
+	{
+		// String a
+		// a = 2
+        if(operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
         {
             yyerrormsg("Intenta asignar CTE a un String");
         }
+		// sliceAndConcat(3, 6, 200, "verde", TRUE); (En el tercer parametro deberia ir un String)
+		if (operacion == texto)
+        {
+            yyerrormsg("Operacion invalida con string");
+        }
         ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
-        printf("    CTE es Factor\n");}
-    | CTE_FLOAT{
-        if(esAsignacion==1&&strcmp(tipoAsignacion,"String")==0)
+        printf("    CTE es Factor\n");
+	}
+    | CTE_FLOAT
+	{
+		// String a
+		// a = 2.5
+        if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
         {
             yyerrormsg("Intenta asignar CTE de distinto tipo");
         }
-        if(esAsignacion==1&&strcmp(tipoAsignacion,"Int")==0)
+		// Int a
+		// a = 2.5
+        if(operacion == asignacion && strcmp(tipoAsignacion, "Int") == 0)
         {
             yyerrormsg("Intenta asignar CTE float a un int");
         }
-        ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
-        printf("    CTE es Factor\n");}
-    | PA expresion PC {printf("    Expresion entre parentesis es Factor\n");}
-	| sum_first_primes {printf("    sumFirstPrimes es Factor\n");}
+		// WRITE(2.5)
+		if (operacion == texto)
+        {
+            yyerrormsg("Operacion invalida con string");
+        }
+        ponerEnPolaca(&polaca, tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
+        printf("\tCTE es Factor\n");}
+    | PA expresion PC
+	{
+		printf("    Expresion entre parentesis es Factor\n");
+	}
+	| CTE_STR
+	{
+		// int a
+		// a = "hola"
+		if (operacion == asignacion && strcmp(tipoAsignacion, "String") != 0)
+		{
+			yyerrormsg("Operacion invalida, Intenta asignar un string a un numero");
+		}
+		// "HOLA" == "MUNDO"
+		if (operacion == logica)
+		{
+            yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
+		}
+		printf("CTE_STR es Expresion\n");
+	}
+	| slice_and_concat
+	{
+		if (operacion == asignacion && strcmp(tipoAsignacion, "String") != 0)
+		{
+			yyerrormsg("Operacion invalida, Intenta asignar un string a un numero");
+		}
+		if(operacion == logica && strcmp(tipoAsignacion, "String") != 0)
+		{
+            yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
+		}
+	}
+	| sum_first_primes
+	{
+        if(operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+        {
+            yyerrormsg("Intenta asignar CTE a un int");
+        }
+        printf("    sum_first_primes es Factor\n");
+	}
 	;
 
 elementos:
@@ -334,77 +425,98 @@ elemento:
 	;
 	
 sum_first_primes:
-	SFP PA expresion PC {printf("     SFP(expresion) es sumFirstPrimes\n");}
+	SFP PA expresion PC
+	{
+		printf("     SFP(expresion) es sumFirstPrimes\n");
+	}
 	;
 
 slice_and_concat:
-	SAC PA expresion COMA expresion COMA expresion COMA expresion COMA BOOL PC {printf("     SAC(expresion,expresion,expresion,expresion,BOOL) es sliceAndConcat\n");}
-	;
+	SAC PA
+	{
+		//Begin
+		ponerEnPolaca(&polaca,"BSAC");
+		operacionAuxiliar = operacion;
+		operacion = logica;
+		//strcpy(tipoAsignacionAuxiliar, tipoAsignacion);
+		//strcpy(tipoAsignacion, "Int");
+	}
+	expresion COMA expresion COMA
+	{
+		operacion = texto;
+		//strcpy(tipoAsignacion, "String");
+	}
+	expresion COMA expresion COMA BOOL PC
+	{
+		printf("\tSAC(expresion,expresion,expresion,expresion,BOOL) es sliceAndConcat\n");
+		//strcpy(tipoAsignacion, tipoAsignacionAuxiliar);
+		operacion = operacionAuxiliar;
+		//End
+		ponerEnPolaca(&polaca,"ESAC");
+	}
+;
 
 write:
     WRITE PA CTE_STR PC OP_ENDLINE
-	| WRITE PA ID PC OP_ENDLINE
-    ;
+	| WRITE PA ID
+	{
+		int posicion = buscarEnTablaDeSimbolos($<vals>3);
+        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
+        {
+            yyerrormsg("Variable sin declarar");
+        }
+	}
+	PC OP_ENDLINE
+	;
 
 read: 
-	READ PA ID PC OP_ENDLINE
-	| READ PA CTE_STR PC OP_ENDLINE
-	;
+	READ PA CTE_STR PC OP_ENDLINE
+	| READ PA ID
+	{
+		int posicion = buscarEnTablaDeSimbolos($<vals>3);
+        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
+        {
+            yyerrormsg("Variable sin declarar");
+        }
+	}
+	PC OP_ENDLINE
+;
 
 operador_comparacion:
-	OP_LOW
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	| OP_GREAT
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	| OP_EQUAL
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	| OP_LE
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	| OP_GE
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	| OP_NE
-	{
-		strcpy(ultimoComparador,$<vals>1);
-	}
-	;
+	OP_LOW { strcpy(ultimoComparador,$<vals>1); }
+	| OP_GREAT { strcpy(ultimoComparador,$<vals>1);	}
+	| OP_EQUAL { strcpy(ultimoComparador,$<vals>1); }
+	| OP_LE { strcpy(ultimoComparador,$<vals>1); }
+	| OP_GE { strcpy(ultimoComparador,$<vals>1); }
+	| OP_NE { strcpy(ultimoComparador,$<vals>1); }
+;
 
 operador_logico:
 	AND { ultimoOperadorLogico = and; }
 	| OR { ultimoOperadorLogico = or; }
-	;
+;
 
-operador_negacion:
-	NOT
-	;
+operador_negacion: NOT ;
 
 while:
-	WHILE{
-			t_info info;
-			info.nro=contadorWhile++;
-			info.saltoElse=contadorPolaca;
-			ponerEnPila(&pilaWhile,&info);
-			tipoCondicion=condicionWhile;
-			ponerEnPolaca(&polaca,"ET");
-		} 
-		PA condicion PC bloque_ejecucion	
+	WHILE
+	{
+		t_info info;
+		info.nro = contadorWhile++;
+		info.saltoElse = contadorPolaca;
+		ponerEnPila(&pilaWhile, &info);
+		tipoCondicion = condicionWhile;
+		ponerEnPolaca(&polaca, "ET");
+	} 
+	PA condicion PC bloque_ejecucion	
+	{
+		char aux[20];
+		sprintf(aux, "%d", topeDePila(&pilaWhile)->saltoElse);
+		ponerEnPolaca(&polaca,"BI");
+		ponerEnPolaca(&polaca, aux);
+		sprintf(aux, "%d", contadorPolaca);
+		switch (topeDePila(&pilaWhile)->andOr)
 		{
-			char aux[20];
-			sprintf(aux, "%d", topeDePila(&pilaWhile)->saltoElse);
-			ponerEnPolaca(&polaca,"BI");
-			ponerEnPolaca(&polaca, aux);
-			sprintf(aux, "%d", contadorPolaca);
-			switch (topeDePila(&pilaWhile)->andOr)
-			{
 			case condicionSimple:
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
 				break;
@@ -414,32 +526,33 @@ while:
 			case or:
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
 				break;
-			}
-			sacarDePila(&pilaWhile);
 		}
-	;
+		sacarDePila(&pilaWhile);
+	}
+;
 
-condicion: comparacion
-			{
-				switch(tipoCondicion)
-				{
-					case condicionIf:
-						ponerEnPolaca(&polaca,"CMP");
-						ponerEnPolaca(&polaca,obtenerSalto(inverso));
-						topeDePila(&pilaIf)->salto1=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						topeDePila(&pilaIf)->andOr = condicionSimple;
-						break;
+condicion:
+	comparacion
+	{
+		switch(tipoCondicion)
+		{
+			case condicionIf:
+				ponerEnPolaca(&polaca,"CMP");
+				ponerEnPolaca(&polaca,obtenerSalto(inverso));
+				topeDePila(&pilaIf)->salto1=contadorPolaca;
+				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaIf)->andOr = condicionSimple;
+				break;
 
-					case condicionWhile:
-						ponerEnPolaca(&polaca,"CMP");
-						ponerEnPolaca(&polaca,obtenerSalto(inverso));
-						topeDePila(&pilaWhile)->salto1=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						topeDePila(&pilaWhile)->andOr = condicionSimple;
-						break;
-				}
-			}
+			case condicionWhile:
+				ponerEnPolaca(&polaca,"CMP");
+				ponerEnPolaca(&polaca,obtenerSalto(inverso));
+				topeDePila(&pilaWhile)->salto1=contadorPolaca;
+				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaWhile)->andOr = condicionSimple;
+				break;
+		}
+	}
 	|operador_negacion comparacion
 			{
 				switch(tipoCondicion)
@@ -535,11 +648,11 @@ condicion: comparacion
 							break;
 					}
 	            }
-comparacion:
-	expresion operador_comparacion expresion | PA comparacion PC
-	;
-
-
+	
+	comparacion:
+		expresion operador_comparacion expresion
+		| PA comparacion PC
+;
 
 if:
 	IF 
