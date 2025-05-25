@@ -1,9 +1,0 @@
-INIT
-{
-   e,p:String
-   a,b:Int
-   f,g:Float
-}
-
-a = sumFirstPrimes(10000);
-

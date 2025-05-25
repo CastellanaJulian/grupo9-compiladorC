@@ -26,8 +26,6 @@ e=sliceAndConcat(a, 6, "amarillo", e, FALSE);
 
 WRITE (e);
 
-a=sumFirstPrimes(((a * b) - 5));
-
 WRITE (a);
 
 if(a == 0 AND b == 1)

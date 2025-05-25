@@ -1,9 +1,13 @@
 %{
+/******************* Librerias *******************/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include "y.tab.h"
+
+/******************* Defines *******************/
 
 #define LIMITE_SUPERIOR_ENTERO 65535
 #define REGISTROS_MAXIMO 1000
@@ -12,22 +16,35 @@
 #define FALSE 0
 #define ERROR -1
 #define OK 3
+#define VACIO ""
+
+#define CMP "CMP"
+#define BEQ "BEQ"
+#define BNE "BNE"
+#define BGT "BGT"
+#define BGE "BGE"
+#define BLT "BLT"
+#define BLE "BLE"
 
 /******************* Enums *******************/
 
-enum tipoSalto { normal, inverso };
+enum EnumTipoSalto
+{
+	normal,
+	inverso
+};
 enum and_or { and, or, condicionSimple };
 enum tipoDato { tipoInt, tipoFloat, tipoString, sinTipo };
 enum tipoCondicion { condicionIf, condicionWhile };
-enum EnumOperacion {
+enum EnumOperacion
+{
 	asignacion,
 	logica,
 	texto,
 };
 
-/*******************************************/
+/******************* Estructuras *******************/
 
-/* Estructuras */
 typedef struct
 {
 	int cantExpresiones;
@@ -71,7 +88,8 @@ typedef t_nodoPila *t_pila;
 t_pila pilaIf;
 t_pila pilaWhile;
 
-/* Declaraciones Implicitass*/
+/******************* Declaraciones Implicitas *******************/
+
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
 extern int crearTablaDeSimbolos();
@@ -79,12 +97,13 @@ extern t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
 extern char*yytext;
 extern int yylineno;
 
-/* Funciones */
+/******************* Funciones *******************/
+
 void guardarPolaca(t_polaca*);
 int ponerEnPolacaNro(t_polaca*,int, char *);
 int ponerEnPolaca(t_polaca*, char *);
 void crearPolaca(t_polaca*);
-char* obtenerSalto(enum tipoSalto);
+char* obtenerSalto(enum EnumTipoSalto);
 
 void vaciarPila(t_pila*);
 t_info* sacarDePila(t_pila*);
@@ -94,11 +113,13 @@ t_info* topeDePila(t_pila*);
 
 t_info* topeDePila(t_pila*);
 t_info* sacarDePila(t_pila*);
-int contadorIf = 0;
-int contadorWhile = 0;
-enum tipoCondicion tipoCondicion;
+int yyerror();
+int yylex();
 
-/* Variables Globales */
+bool is_prime (int n);
+
+/******************* Variables Globales *******************/
+
 t_polaca polaca;
 int contadorPolaca = 0;
 char ultimoComparador[3];
@@ -114,10 +135,9 @@ char tipoAsignacionAuxiliar[50];
 int yystopparser = 0;
 FILE  *yyin;
 
-int yyerror();
-int yylex();
-
-bool is_prime (int n);
+int contadorIf = 0;
+int contadorWhile = 0;
+enum tipoCondicion tipoCondicion;
 
 %}
 
@@ -171,52 +191,97 @@ bool is_prime (int n);
 
 %%
 programa: 
-	main {printf("Compilacion exitosa\n");};
+	main
+	{
+		printf("Compilacion exitosa\n");
+	}
+;
 
 main: 
-	declaraciones resto_programa {printf("resto_programa\n");}
+	declaraciones resto_programa
+	{
+		printf("resto_programa\n");
+	}
 	| declaraciones
 	| resto_programa
-	;
+;
 
 lista_variables:
-	ID{int posicion=buscarEnTablaDeSimbolos($<vals>1); indicesParaAsignarTipo[contadorListaVar++]=posicion;}
-	| lista_variables COMA ID{int posicion=buscarEnTablaDeSimbolos($<vals>3); indicesParaAsignarTipo[contadorListaVar++]=posicion;}
-	;
+	ID
+	{
+		int posicion=buscarEnTablaDeSimbolos($<vals>1);
+		indicesParaAsignarTipo[contadorListaVar++] = posicion;
+	}
+	| lista_variables COMA ID
+	{
+		int posicion=buscarEnTablaDeSimbolos($<vals>3);
+		indicesParaAsignarTipo[contadorListaVar++] = posicion;
+	}
+;
 	
-
 bloque_declaraciones:
-	lista_variables OP_DP tipo{contadorListaVar=0;}
-	| bloque_declaraciones lista_variables OP_DP tipo{contadorListaVar=0;}
-	;
+	lista_variables OP_DP tipo
+	{
+		contadorListaVar=0;
+	}
+	| bloque_declaraciones lista_variables OP_DP tipo
+	{
+		contadorListaVar=0;
+	}
+;
 
 tipo:
 	INTEGER
 	| FLOAT
 	| STRING
-	;
+;
 
 declaraciones:
-	INIT LLA bloque_declaraciones LLC	{printf("declaraciones\n");}
-	;
+	INIT LLA bloque_declaraciones LLC
+	{
+		printf("declaraciones\n");
+	}
+;
 
 resto_programa: 
-	sentencia {printf("sentencia\n");} 
-	| resto_programa sentencia {printf("resto_programa sentencia\n");};
+	sentencia
+	{
+		printf("sentencia\n");
+	} 
+	| resto_programa sentencia
+	{
+		printf("resto_programa sentencia\n");
+	}
+;
 
 sentencia:  	   
-	asignacion {printf(" asignacion\n");} 
-	| if {printf(" if\n");}
-	| while {printf(" while\n");}
-	| write {printf(" write\n");}
-	| read {printf(" read\n");}
-	;
+	asignacion
+	{
+		printf(" asignacion\n");
+	} 
+	| if
+	{
+		printf(" if\n");
+	}
+	| while
+	{
+		printf(" while\n");
+	}
+	| write
+	{
+		printf(" write\n");
+	}
+	| read
+	{
+		printf(" read\n");
+	}
+;
 
 asignacion: 
 	ID
 	{
 		// Comparar haciendo enums
-		if (strcmp(tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo, "") == 0)
+		if (strcmp(tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo, VACIO) == 0)
 		{
 			yyerrormsg("Variable sin declarar");
 		}
@@ -227,12 +292,12 @@ asignacion:
 	OP_AS expresion
 	{
 		operacion = logica;
-		strcpy(tipoAsignacion,"VARIABLE");
-		ponerEnPolaca(&polaca,"=");
+		strcpy(tipoAsignacion, "VARIABLE");
+		ponerEnPolaca(&polaca, "=");
 	}
 	OP_ENDLINE
 	{
-		printf("    ID = Expresion es ASIGNACION\n");
+		printf("\tID = Expresion es ASIGNACION\n");
 	}
 ;
 
@@ -271,28 +336,38 @@ expresion:
 			ponerEnPolaca(&polaca,"-");
 			printf("Expresion - Termino es Expresion\n");
 		}
-	;
+;
 
 termino: 
-   factor
-   {
+	factor
+	{
 		printf("Factor es Termino\n");
 	}
-   | termino OP_MUL
-   {
-		if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+	| termino OP_MUL
 		{
-			yyerrormsg("Operacion invalida con string");
+			if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+			{
+				yyerrormsg("Operacion invalida con string");
+			}
 		}
-	} factor{ponerEnPolaca(&polaca,"*");} {printf(" Termino*Factor es Termino\n");}
-   | termino OP_DIV
-   {
-		if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
+		factor
 		{
-			yyerrormsg("Operacion invalida con string");
+			ponerEnPolaca(&polaca,"*");
+			printf(" Termino*Factor es Termino\n");
 		}
-	} factor{ponerEnPolaca(&polaca,"/");} {printf(" Termino/Factor es Termino\n");}
-   ;
+	| termino OP_DIV
+		{
+			if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
+			{
+				yyerrormsg("Operacion invalida con string");
+			}
+		}
+		factor
+		{
+			ponerEnPolaca(&polaca,"/");
+			printf(" Termino/Factor es Termino\n");
+		}
+;
 
 factor: 
     ID
@@ -481,8 +556,6 @@ sum_first_primes:
 slice_and_concat:
 	SAC PA
 	{
-		//Begin Slice And Concat
-		ponerEnPolaca(&polaca,"BSAC");
 		operacionAuxiliar = operacion;
 		operacion = logica;
 	}
@@ -494,8 +567,6 @@ slice_and_concat:
 	{
 		printf("\tSAC(expresion,expresion,expresion,expresion,BOOL) es sliceAndConcat\n");
 		operacion = operacionAuxiliar;
-		//End Slice And Concat
-		ponerEnPolaca(&polaca,"ESAC");
 	}
 ;
 
@@ -580,7 +651,7 @@ condicion:
 		switch(tipoCondicion)
 		{
 			case condicionIf:
-				ponerEnPolaca(&polaca,"CMP");
+				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(inverso));
 				topeDePila(&pilaIf)->salto1=contadorPolaca;
 				ponerEnPolaca(&polaca,"");
@@ -588,7 +659,7 @@ condicion:
 				break;
 
 			case condicionWhile:
-				ponerEnPolaca(&polaca,"CMP");
+				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(inverso));
 				topeDePila(&pilaWhile)->salto1=contadorPolaca;
 				ponerEnPolaca(&polaca,"");
@@ -601,7 +672,7 @@ condicion:
 				switch(tipoCondicion)
 				{
 					case condicionIf:
-						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca, CMP);
 						ponerEnPolaca(&polaca,obtenerSalto(normal));
 						topeDePila(&pilaIf)->salto1=contadorPolaca;
 						ponerEnPolaca(&polaca,"");
@@ -609,7 +680,7 @@ condicion:
 						break;
 
 					case condicionWhile:
-						ponerEnPolaca(&polaca,"CMP");
+						ponerEnPolaca(&polaca, CMP);
 						ponerEnPolaca(&polaca,obtenerSalto(normal));
 						topeDePila(&pilaWhile)->salto1=contadorPolaca;
 						ponerEnPolaca(&polaca,"");
@@ -624,7 +695,7 @@ condicion:
 					case condicionIf:
 						switch(ultimoOperadorLogico){
 							case and:
-								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca, CMP);
 								ponerEnPolaca(&polaca,obtenerSalto(inverso));
 								topeDePila(&pilaIf)->salto1=contadorPolaca;
 								ponerEnPolaca(&polaca,"");
@@ -632,7 +703,7 @@ condicion:
 								topeDePila(&pilaIf)->andOr = and;
 								break;
 							case or:
-								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca, CMP);
 								ponerEnPolaca(&polaca,obtenerSalto(normal));
 								topeDePila(&pilaIf)->salto1=contadorPolaca;
 								ponerEnPolaca(&polaca,"");
@@ -644,7 +715,7 @@ condicion:
 					case condicionWhile:
 						switch(ultimoOperadorLogico){
 							case and:
-								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca, CMP);
 								ponerEnPolaca(&polaca,obtenerSalto(inverso));
 								topeDePila(&pilaWhile)->salto1=contadorPolaca;
 								ponerEnPolaca(&polaca,"");
@@ -652,7 +723,7 @@ condicion:
 								break;
 
 							case or:
-								ponerEnPolaca(&polaca,"CMP");
+								ponerEnPolaca(&polaca, CMP);
 								ponerEnPolaca(&polaca,obtenerSalto(normal));
 								topeDePila(&pilaWhile)->salto1=contadorPolaca;
 								ponerEnPolaca(&polaca,"");
@@ -667,7 +738,7 @@ condicion:
 					switch(tipoCondicion)
 					{
 						case condicionIf:
-							ponerEnPolaca(&polaca,"CMP");
+							ponerEnPolaca(&polaca, CMP);
 							ponerEnPolaca(&polaca,obtenerSalto(inverso));
 							topeDePila(&pilaIf)->salto2=contadorPolaca;
 							ponerEnPolaca(&polaca,"");
@@ -679,7 +750,7 @@ condicion:
 							break;
 
 						case condicionWhile:
-							ponerEnPolaca(&polaca,"CMP");
+							ponerEnPolaca(&polaca, CMP);
 							ponerEnPolaca(&polaca,obtenerSalto(inverso));
 							topeDePila(&pilaWhile)->salto2=contadorPolaca;
 							ponerEnPolaca(&polaca,"");
@@ -705,11 +776,7 @@ if:
 			ponerEnPila(&pilaIf,&info);
 			tipoCondicion=condicionIf;
 		}
-	PA condicion PC
-	{
-
-	}
-	resto
+	PA condicion PC resto
 	{
 		sacarDePila(&pilaIf);
 	}
@@ -735,34 +802,30 @@ else:
 	}
 	bloque_ejecucion
 	{
-	
 		char aux[20];
 		sprintf(aux, "%d", contadorPolaca);
 		ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->saltoElse, aux);
 	}
 	;
 
-bloque_ejecucion:
-	LLA resto_programa LLC
-	;
+bloque_ejecucion: LLA resto_programa LLC ;
 
 resto: 
 	bloque_ejecucion
 	{
 		char aux[20];
 		sprintf(aux, "%d", contadorPolaca);
-		
 		switch (topeDePila(&pilaIf)->andOr)
 		{
-		case condicionSimple:
-			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-			break;
-		case and:
-			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
-		case or:
-			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
-			break;
+			case condicionSimple:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+				break;
+			case and:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+			case or:
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+				break;
 		}
 	}
 	| bloque_ejecucion
@@ -778,7 +841,6 @@ resto:
 	}
 	else
 	;
-
 
 %%
 
@@ -796,8 +858,7 @@ int yyerrormsg(const char * msg)
     exit (1);
 }
 
-/* primitivas de polaca */
-
+/****************************** Métodos Polaca (Primitivas) ******************************/
 
 void crearPolaca(t_polaca* pp)
 {
@@ -855,7 +916,7 @@ int ponerEnPolacaNro(t_polaca* pp,int pos, char *cadena)
 
 void guardarPolaca(t_polaca *pp)
 {
-	FILE*pt=fopen("intermedia.txt","w+");
+	FILE*pt = fopen("intermediate-code.txt","w+");
 	t_nodoPolaca* pn;
 	if(!pt)
 	{
@@ -873,7 +934,7 @@ void guardarPolaca(t_polaca *pp)
 	fclose(pt);
 }
 
-char* obtenerSalto(enum tipoSalto tipo)
+char* obtenerSalto(enum EnumTipoSalto tipo)
 {
 	switch(tipo)
 	{
@@ -909,8 +970,7 @@ char* obtenerSalto(enum tipoSalto tipo)
 	}
 }
 
-// Métodos pila
-/* primitivas de pila */
+/****************************** Métodos pila (Primitivas) ******************************/
 
 void crearPila(t_pila* pp)
 {
@@ -956,21 +1016,25 @@ t_info* topeDePila(t_pila* pila)
 	return &((*pila)->info);
 }
 
+/*********************************************************************************/
+
 int main(int argc, char *argv[])
 {
 	crearPila(&pilaIf);
 	crearPolaca(&polaca);
-    if ((yyin = fopen(argv[1], "rt")) == NULL) {
+    if ((yyin = fopen(argv[1], "rt")) == NULL)
+	{
         printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-    } else { 
+    }
+	else
+	{ 
     	yyparse();
     }
-	
-    // showSymbolTable(); Función para realizar el debug de la tabla de simbolos.
+    // mostrarTablaDeSimbolos(); Función para realizar el debug de la tabla de simbolos.
     crearTablaDeSimbolos();
 	fclose(yyin);
 	guardarPolaca(&polaca);
-  return 0;
+  	return 0;
 }
 
 bool is_prime (int n)
@@ -986,5 +1050,5 @@ bool is_prime (int n)
       return FALSE;
     }
   }
-  return n > 1;  // No factors and n is more than 1.
+  return n > 1;
 }
