@@ -56,7 +56,7 @@ LETRA                   [a-zA-Z]
 
 /* Regex */
 CTE_FLOAT               ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
-CTE_INT                 {NUMERO}+
+CTE_INT                 -?{NUMERO}+
 CTE_STR                 {QUOTE}.[^"]+.{QUOTE}
 ID                      {LETRA}({LETRA}|{NUMERO})*
 

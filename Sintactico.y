@@ -281,12 +281,13 @@ termino:
 			yyerrormsg("Operacion invalida con string");
 		}
 	} factor{ponerEnPolaca(&polaca,"*");} {printf(" Termino*Factor es Termino\n");}
-   | termino OP_DIV{
-			if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
-			{
-				yyerrormsg("Operacion invalida con string");
-			}
-		} factor{ponerEnPolaca(&polaca,"/");} {printf(" Termino/Factor es Termino\n");}
+   | termino OP_DIV
+   {
+		if(operacion == asignacion && strcmp(tipoAsignacion,"String")==0)
+		{
+			yyerrormsg("Operacion invalida con string");
+		}
+	} factor{ponerEnPolaca(&polaca,"/");} {printf(" Termino/Factor es Termino\n");}
    ;
 
 factor: 
@@ -404,14 +405,19 @@ factor:
 		{
             yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
 		}
+		printf("\tslice_and_concat es Factor\n");
 	}
 	| sum_first_primes
 	{
         if(operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
         {
-            yyerrormsg("Intenta asignar CTE a un int");
+            yyerrormsg("Intenta asignar Int a un String");
         }
-        printf("    sum_first_primes es Factor\n");
+		if (operacion == texto)
+        {
+            yyerrormsg("Operacion invalida con string");
+        }
+        printf("\tsum_first_primes es Factor\n");
 	}
 	;
 
@@ -425,33 +431,52 @@ elemento:
 	;
 	
 sum_first_primes:
-	SFP PA expresion PC
+	SFP PA
 	{
-		printf("     SFP(expresion) es sumFirstPrimes\n");
+		//Begin Sum First Primes
+		ponerEnPolaca(&polaca, "BSFP");
+		operacionAuxiliar = operacion;
+		operacion = logica;
 	}
-	;
+	/*expresion
+	{
+		ponerEnPolaca(&polaca, "-");
+
+	}*/
+	CTE_INT
+	{
+		int valor = atoi($<vals>4);
+		if (valor < 0)
+		{
+			yyerrormsg("El valor de SFP no puede ser negativo");
+		}
+	}
+	PC
+	{
+		printf("\tSFP(expresion) es sumFirstPrimes\n");
+		operacion = operacionAuxiliar;
+		//End Sum First Primes
+		ponerEnPolaca(&polaca,"ESAC");
+	}
+;
 
 slice_and_concat:
 	SAC PA
 	{
-		//Begin
+		//Begin Slice And Concat
 		ponerEnPolaca(&polaca,"BSAC");
 		operacionAuxiliar = operacion;
 		operacion = logica;
-		//strcpy(tipoAsignacionAuxiliar, tipoAsignacion);
-		//strcpy(tipoAsignacion, "Int");
 	}
 	expresion COMA expresion COMA
 	{
 		operacion = texto;
-		//strcpy(tipoAsignacion, "String");
 	}
 	expresion COMA expresion COMA BOOL PC
 	{
 		printf("\tSAC(expresion,expresion,expresion,expresion,BOOL) es sliceAndConcat\n");
-		//strcpy(tipoAsignacion, tipoAsignacionAuxiliar);
 		operacion = operacionAuxiliar;
-		//End
+		//End Slice And Concat
 		ponerEnPolaca(&polaca,"ESAC");
 	}
 ;
