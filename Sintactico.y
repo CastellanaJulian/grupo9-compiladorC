@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "y.tab.h"
 
@@ -114,6 +115,8 @@ FILE  *yyin;
 
 int yyerror();
 int yylex();
+
+bool is_prime (int n);
 
 %}
 
@@ -433,8 +436,6 @@ elemento:
 sum_first_primes:
 	SFP PA
 	{
-		//Begin Sum First Primes
-		ponerEnPolaca(&polaca, "BSFP");
 		operacionAuxiliar = operacion;
 		operacion = logica;
 	}
@@ -446,17 +447,29 @@ sum_first_primes:
 	CTE_INT
 	{
 		int valor = atoi($<vals>4);
-		if (valor < 0)
+		if (valor < 1)
 		{
-			yyerrormsg("El valor de SFP no puede ser negativo");
+			yyerrormsg("El valor de SFP no puede ser menor a 1");
+		}
+		int x = 3;
+		ponerEnPolaca(&polaca, "2");
+		valor--;
+		while(valor != 0)
+		{
+			if(is_prime(x))
+			{
+				valor--;
+				char aux[50];
+				ponerEnPolaca(&polaca, itoa(x, aux, 10));
+				ponerEnPolaca(&polaca, "+");
+			}
+			x++;
 		}
 	}
 	PC
 	{
 		printf("\tSFP(expresion) es sumFirstPrimes\n");
 		operacion = operacionAuxiliar;
-		//End Sum First Primes
-		ponerEnPolaca(&polaca,"ESAC");
 	}
 ;
 
@@ -955,3 +968,18 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+bool is_prime (int n)
+{
+  if (n % 2 == 0)
+  {
+    return n == 2;
+  }
+  for (int test_factor = 3; test_factor <= n / test_factor; test_factor += 2)
+  {
+    if (n % test_factor == 0)
+	{
+      return FALSE;
+    }
+  }
+  return n > 1;  // No factors and n is more than 1.
+}

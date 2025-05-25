@@ -5,5 +5,4 @@
        b	|	        	|	     Int	|	       0
        f	|	        	|	   Float	|	       0
        g	|	        	|	   Float	|	       0
-    _-10	|	     -10	|	 CTE_INT	|	       0
-      _5	|	       5	|	 CTE_INT	|	       0
+      _1	|	       1	|	 CTE_INT	|	       0

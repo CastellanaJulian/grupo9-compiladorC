@@ -5,6 +5,5 @@ INIT
    f,g:Float
 }
 
-b = -10;
-a = sumFirstPrimes(-5);
+a = sumFirstPrimes(1);
 
