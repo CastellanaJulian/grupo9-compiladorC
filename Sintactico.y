@@ -11,6 +11,9 @@
 
 /******************* Defines *******************/
 
+#define TIPO_INT "Int"
+#define TIPO_FLOAT "Float"
+#define TIPO_STRING "String"
 #define LIMITE_SUPERIOR_ENTERO 65535
 #define REGISTROS_MAXIMO 1000
 #define TRUE 1
@@ -194,26 +197,11 @@ resto_programa:
 ;
 
 sentencia:  	   
-	asignacion
-	{
-		printf(" asignacion\n");
-	} 
-	| if
-	{
-		printf(" if\n");
-	}
-	| while
-	{
-		printf(" while\n");
-	}
-	| write
-	{
-		printf(" write\n");
-	}
-	| read
-	{
-		printf(" read\n");
-	}
+	asignacion { printf(" asignacion\n"); } 
+	| if { printf(" if\n"); }
+	| while { printf(" while\n"); }
+	| write { printf(" write\n"); }
+	| read { printf(" read\n"); }
 ;
 
 asignacion: 
@@ -250,7 +238,7 @@ expresion:
 			// String e;
 			// e = 2 + "HOLA MUNDO";
 			// e = "HOLA MUNDO" + 2;
-			if(operacion == asignacion && strcmp(tipoAsignacion,"String") == 0)
+			if(operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
 			{
 				yyerrormsg("Operacion invalida con string");
 			}
@@ -265,9 +253,9 @@ expresion:
 			// String e;
 			// e = 2 - "HOLA MUNDO";
 			// e = "HOLA MUNDO" - 2;
-			if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+			if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
 			{
-				yyerrormsg("Operacion invalida con string");
+				yyerrormsg("Operacion invalida con String");
 			}
 		}
 		termino
@@ -284,7 +272,7 @@ termino:
 	}
 	| termino OP_MUL
 		{
-			if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+			if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
 			{
 				yyerrormsg("Operacion invalida con string");
 			}
@@ -296,7 +284,7 @@ termino:
 		}
 	| termino OP_DIV
 		{
-			if (operacion == asignacion && strcmp(tipoAsignacion,"String") == 0)
+			if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
 			{
 				yyerrormsg("Operacion invalida con string");
 			}
@@ -313,23 +301,23 @@ factor:
 	{
         int posicion = buscarEnTablaDeSimbolos($<vals>1);
 		// x = 1;
-        if (strcmp(tablaDeSimbolos[posicion].tipo, "") == 0)
+        if (strcmp(tablaDeSimbolos[posicion].tipo, VACIO) == 0)
         {
             yyerrormsg("Variable sin declarar");
         }
 		// int a;
 		// String e;
 		// a = e;
-        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "String") == 0 && strcmp(tipoAsignacion, "String") != 0)
+        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, TIPO_STRING) == 0 && strcmp(tipoAsignacion, TIPO_STRING) != 0)
         {
-            yyerrormsg("Intenta asignar ID de distinto tipo (string)");
+            yyerrormsg("Intenta asignar ID de distinto tipo (String)");
         }
 		// int a;
 		// float b;
 		// a = b;
-        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "Float") == 0 && strcmp(tipoAsignacion,"Int") == 0)
+        if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, TIPO_FLOAT) == 0 && strcmp(tipoAsignacion, TIPO_INT) == 0)
         {
-            yyerrormsg("Intenta asignar variable float a un int");
+            yyerrormsg("Intenta asignar variable Float a un Int");
         }
 		// int a;
 		// String e;
@@ -338,21 +326,21 @@ factor:
 		// float a;
 		// String e;
 		// a = e;
-		if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, "String") != 0 && strcmp(tipoAsignacion, "String") == 0)
+		if (operacion == asignacion && strcmp(tablaDeSimbolos[posicion].tipo, TIPO_STRING) != 0 && strcmp(tipoAsignacion, TIPO_STRING) == 0)
         {
             yyerrormsg("Intenta asignar ID de distinto tipo (Int o Float)");
         }
 		// String e = "HOLA MUNDO";
 		// if (e == "HOLA MUNDO") { }
-		if (operacion == logica && strcmp(tablaDeSimbolos[posicion].tipo, "String") == 0)
+		if (operacion == logica && strcmp(tablaDeSimbolos[posicion].tipo, TIPO_STRING) == 0)
         {
             yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
         }
 		// int a = 1;
 		// sliceAndConcat(3, 6, a, "verde", TRUE); (En el tercer parametro deberia ir un String)
-		if (operacion == texto && strcmp(tablaDeSimbolos[posicion].tipo, "String") != 0)
+		if (operacion == texto && strcmp(tablaDeSimbolos[posicion].tipo, TIPO_STRING) != 0)
         {
-            yyerrormsg("Operacion invalida con string");
+            yyerrormsg("Operacion invalida con String");
         }
         ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].lexema);
         printf("    ID es Factor \n");
@@ -361,14 +349,14 @@ factor:
 	{
 		// String a
 		// a = 2
-        if(operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+        if(operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
         {
             yyerrormsg("Intenta asignar CTE a un String");
         }
 		// sliceAndConcat(3, 6, 200, "verde", TRUE); (En el tercer parametro deberia ir un String)
 		if (operacion == texto)
         {
-            yyerrormsg("Operacion invalida con string");
+            yyerrormsg("Operacion invalida con String");
         }
         ponerEnPolaca(&polaca,tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
         printf("    CTE es Factor\n");
@@ -377,20 +365,20 @@ factor:
 	{
 		// String a
 		// a = 2.5
-        if (operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+        if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
         {
             yyerrormsg("Intenta asignar CTE de distinto tipo");
         }
 		// Int a
 		// a = 2.5
-        if(operacion == asignacion && strcmp(tipoAsignacion, "Int") == 0)
+        if(operacion == asignacion && strcmp(tipoAsignacion, TIPO_INT) == 0)
         {
-            yyerrormsg("Intenta asignar CTE float a un int");
+            yyerrormsg("Intenta asignar CTE Float a un Int");
         }
 		// WRITE(2.5)
 		if (operacion == texto)
         {
-            yyerrormsg("Operacion invalida con string");
+            yyerrormsg("Operacion invalida con String");
         }
         ponerEnPolaca(&polaca, tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
         printf("\tCTE es Factor\n");}
@@ -402,7 +390,7 @@ factor:
 	{
 		// int a
 		// a = "hola"
-		if (operacion == asignacion && strcmp(tipoAsignacion, "String") != 0)
+		if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) != 0)
 		{
 			yyerrormsg("Operacion invalida, Intenta asignar un string a un numero");
 		}
@@ -415,11 +403,11 @@ factor:
 	}
 	| slice_and_concat
 	{
-		if (operacion == asignacion && strcmp(tipoAsignacion, "String") != 0)
+		if (operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) != 0)
 		{
-			yyerrormsg("Operacion invalida, Intenta asignar un string a un numero");
+			yyerrormsg("Operacion invalida, Intenta asignar un String a un numero");
 		}
-		if(operacion == logica && strcmp(tipoAsignacion, "String") != 0)
+		if(operacion == logica && strcmp(tipoAsignacion, TIPO_STRING) != 0)
 		{
             yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
 		}
@@ -427,13 +415,13 @@ factor:
 	}
 	| sum_first_primes
 	{
-        if(operacion == asignacion && strcmp(tipoAsignacion, "String") == 0)
+        if(operacion == asignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
         {
             yyerrormsg("Intenta asignar Int a un String");
         }
 		if (operacion == texto)
         {
-            yyerrormsg("Operacion invalida con string");
+            yyerrormsg("Operacion invalida con String");
         }
         printf("\tsum_first_primes es Factor\n");
 	}
@@ -592,16 +580,16 @@ condicion:
 			case condicionIf:
 				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(inverso));
-				topeDePila(&pilaIf)->salto1=contadorPolaca;
-				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaIf)->salto1 = contadorPolaca;
+				ponerEnPolaca(&polaca, VACIO);
 				topeDePila(&pilaIf)->andOr = condicionSimple;
 				break;
 
 			case condicionWhile:
 				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(inverso));
-				topeDePila(&pilaWhile)->salto1=contadorPolaca;
-				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaWhile)->salto1 = contadorPolaca;
+				ponerEnPolaca(&polaca, VACIO);
 				topeDePila(&pilaWhile)->andOr = condicionSimple;
 				break;
 		}
@@ -613,16 +601,16 @@ condicion:
 			case condicionIf:
 				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(normal));
-				topeDePila(&pilaIf)->salto1=contadorPolaca;
-				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaIf)->salto1 = contadorPolaca;
+				ponerEnPolaca(&polaca, VACIO);
 				topeDePila(&pilaIf)->andOr = condicionSimple;
 				break;
 
 			case condicionWhile:
 				ponerEnPolaca(&polaca, CMP);
 				ponerEnPolaca(&polaca,obtenerSalto(normal));
-				topeDePila(&pilaWhile)->salto1=contadorPolaca;
-				ponerEnPolaca(&polaca,"");
+				topeDePila(&pilaWhile)->salto1 = contadorPolaca;
+				ponerEnPolaca(&polaca, VACIO);
 				topeDePila(&pilaWhile)->andOr = condicionSimple;
 				break;
 		}
@@ -635,17 +623,17 @@ condicion:
 					switch(ultimoOperadorLogico){
 						case and:
 							ponerEnPolaca(&polaca, CMP);
-							ponerEnPolaca(&polaca,obtenerSalto(inverso));
-							topeDePila(&pilaIf)->salto1=contadorPolaca;
-							ponerEnPolaca(&polaca,"");
+							ponerEnPolaca(&polaca, obtenerSalto(inverso));
+							topeDePila(&pilaIf)->salto1 = contadorPolaca;
+							ponerEnPolaca(&polaca, VACIO);
 							printf("%d", topeDePila(&pilaIf)->salto1);
 							topeDePila(&pilaIf)->andOr = and;
 							break;
 						case or:
 							ponerEnPolaca(&polaca, CMP);
-							ponerEnPolaca(&polaca,obtenerSalto(normal));
-							topeDePila(&pilaIf)->salto1=contadorPolaca;
-							ponerEnPolaca(&polaca,"");
+							ponerEnPolaca(&polaca, obtenerSalto(normal));
+							topeDePila(&pilaIf)->salto1 = contadorPolaca;
+							ponerEnPolaca(&polaca, VACIO);
 							topeDePila(&pilaIf)->andOr = or;
 							break;
 					}
@@ -655,17 +643,17 @@ condicion:
 					switch(ultimoOperadorLogico){
 						case and:
 							ponerEnPolaca(&polaca, CMP);
-							ponerEnPolaca(&polaca,obtenerSalto(inverso));
-							topeDePila(&pilaWhile)->salto1=contadorPolaca;
-							ponerEnPolaca(&polaca,"");
+							ponerEnPolaca(&polaca, obtenerSalto(inverso));
+							topeDePila(&pilaWhile)->salto1 = contadorPolaca;
+							ponerEnPolaca(&polaca, VACIO);
 							topeDePila(&pilaWhile)->andOr = and;
 							break;
 
 						case or:
 							ponerEnPolaca(&polaca, CMP);
 							ponerEnPolaca(&polaca,obtenerSalto(normal));
-							topeDePila(&pilaWhile)->salto1=contadorPolaca;
-							ponerEnPolaca(&polaca,"");
+							topeDePila(&pilaWhile)->salto1 = contadorPolaca;
+							ponerEnPolaca(&polaca, VACIO);
 							topeDePila(&pilaWhile)->andOr = or;
 							break;
 					}
@@ -673,34 +661,35 @@ condicion:
 			}
 		}
 		comparacion
+		{
+			switch(tipoCondicion)
 			{
-				switch(tipoCondicion)
-				{
-					case condicionIf:
-						ponerEnPolaca(&polaca, CMP);
-						ponerEnPolaca(&polaca,obtenerSalto(inverso));
-						topeDePila(&pilaIf)->salto2=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						if(topeDePila(&pilaIf)->andOr == or){
-							char aux[20];
-							sprintf(aux, "%d", contadorPolaca);
-							ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-						}
-						break;
+				case condicionIf:
+					ponerEnPolaca(&polaca, CMP);
+					ponerEnPolaca(&polaca, obtenerSalto(inverso));
+					topeDePila(&pilaIf)->salto2 = contadorPolaca;
+					ponerEnPolaca(&polaca, VACIO);
+					if(topeDePila(&pilaIf)->andOr == or){
+						char aux[20];
+						sprintf(aux, "%d", contadorPolaca);
+						ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+					}
+					break;
 
-					case condicionWhile:
-						ponerEnPolaca(&polaca, CMP);
-						ponerEnPolaca(&polaca,obtenerSalto(inverso));
-						topeDePila(&pilaWhile)->salto2=contadorPolaca;
-						ponerEnPolaca(&polaca,"");
-						if(topeDePila(&pilaWhile)->andOr == or){
-							char aux[20];
-							sprintf(aux, "%d", contadorPolaca);
-							ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
-						}
-						break;
-				}
+				case condicionWhile:
+					ponerEnPolaca(&polaca, CMP);
+					ponerEnPolaca(&polaca,obtenerSalto(inverso));
+					topeDePila(&pilaWhile)->salto2 = contadorPolaca;
+					ponerEnPolaca(&polaca, VACIO);
+					if(topeDePila(&pilaWhile)->andOr == or)
+					{
+						char aux[20];
+						sprintf(aux, "%d", contadorPolaca);
+						ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+					}
+					break;
 			}
+		}
 		comparacion:
 			expresion operador_comparacion expresion
 			| PA comparacion PC
@@ -708,12 +697,12 @@ condicion:
 
 if:
 	IF 
-		{
-			Informacion info;
-			info.nro=contadorIf++;
-			ponerEnPila(&pilaIf,&info);
-			tipoCondicion=condicionIf;
-		}
+	{
+		Informacion info;
+		info.nro = contadorIf++;
+		ponerEnPila(&pilaIf, &info);
+		tipoCondicion = condicionIf;
+	}
 	PA condicion PC resto
 	{
 		sacarDePila(&pilaIf);
