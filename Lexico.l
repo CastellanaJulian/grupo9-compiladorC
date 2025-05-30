@@ -131,7 +131,7 @@ COMMENT_CL              "+#"
 {INTEGER}               { agregarATablaDeSimbolos(yytext,0,1); return INTEGER; }
 {FLOAT}                 { agregarATablaDeSimbolos(yytext,0,1); return FLOAT; }
 {STRING}                { agregarATablaDeSimbolos(yytext,0,1); return STRING; }
-{BOOL}                  { return BOOL; }
+{BOOL}                  { yylval.vals=strdup(yytext); return BOOL; }
 
 {CTE_INT}               { validarEntero(yytext); yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_INT; }
 {CTE_FLOAT}             { validarFlotante(yytext); yylval.vals=strdup(yytext); agregarATablaDeSimbolos(yytext,1,0); return CTE_FLOAT; }
