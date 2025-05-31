@@ -409,14 +409,10 @@ factor:
 	
 sum_first_primes:
 	SFP PA
-	/*expresion
-	{
-		ponerEnPolaca(&polaca, "-");
-
-	}*/
 	CTE_INT
 	{
-		int valor = atoi($<vals>0);
+		int valor = atoi($<vals>3);
+		printf("Valor de SFP: %d\n", valor);
 		if (valor < 1)
 		{
 			yyerrormsg("El valor de SFP no puede ser menor a 1");

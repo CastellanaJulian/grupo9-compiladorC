@@ -1,9 +1,11 @@
 INIT
 {
    a,b,c,d:Int
-   e:String
+   e,h:String
    f,g:Float
 }
+
+a = 3;
 
 READ (a);
 
@@ -22,8 +24,6 @@ f = 1.0;
 e = "verde";
 g = 7.255;
 
-e=sliceAndConcat(a, 6, "amarillo", e, FALSE);
-
 WRITE (e);
 
 WRITE (a);
@@ -31,7 +31,9 @@ WRITE (a);
 if(a == 0 AND b == 1)
 {
    a := 3;
-} else {
+}
+else
+{
    b := 8;
 }
 
@@ -69,6 +71,10 @@ if(a > b + 3 AND a < 4)
    #+ Igualo a 6 +#
    c := 6;
 }
+
+h := "H";
+
+WRITE (h);
 
 #+ Así son los comentarios de LyC +#
 

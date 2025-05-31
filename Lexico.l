@@ -57,7 +57,7 @@ LETRA                   [a-zA-Z]
 /* Regex */
 CTE_FLOAT               ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
 CTE_INT                 -?{NUMERO}+
-CTE_STR                 {QUOTE}.[^"]+.{QUOTE}
+CTE_STR                 {QUOTE}[^"]*{QUOTE}
 ID                      {LETRA}({LETRA}|{NUMERO})*
 
 /* Caracteres */
@@ -166,7 +166,7 @@ COMMENT_CL              "+#"
 "\n\t"
 " "             		
 "\r\n"
-.                   { printf( "ERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0);}
+.                       { printf( "ERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0);}
 
 %%
 
