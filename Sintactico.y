@@ -150,12 +150,12 @@ main:
 lista_variables:
 	ID
 	{
-		int posicion=buscarEnTablaDeSimbolos($<vals>1);
+		int posicion = buscarEnTablaDeSimbolos($<vals>1);
 		indicesParaAsignarTipo[contadorListaVar++] = posicion;
 	}
 	| lista_variables COMA ID
 	{
-		int posicion=buscarEnTablaDeSimbolos($<vals>3);
+		int posicion = buscarEnTablaDeSimbolos($<vals>3);
 		indicesParaAsignarTipo[contadorListaVar++] = posicion;
 	}
 ;
@@ -206,7 +206,6 @@ sentencia:
 asignacion: 
 	ID
 	{
-		// Comparar haciendo enums
 		if (strcmp(tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].tipo, VACIO) == 0)
 		{
 			yyerrormsg("Variable sin declarar");
@@ -786,7 +785,8 @@ int main(int argc, char *argv[])
 	{ 
 		yyparse();
 	}
-	// mostrarTablaDeSimbolos(); Función para realizar el debug de la tabla de simbolos.
+	// Función para realizar el debug de la tabla de simbolos.
+	// mostrarTablaDeSimbolos();
 	crearTablaDeSimbolos();
 	fclose(yyin);
 	guardarPolaca(&polaca);
@@ -797,14 +797,14 @@ bool is_prime (int numero)
 {
 	if (numero % 2 == 0)
 	{
-	return numero == 2;
+		return numero == 2;
 	}
 	for (int test_factor = 3; test_factor <= numero / test_factor; test_factor += 2)
 	{
-	if (numero % test_factor == 0)
-	{
-	  return FALSE;
-	}
+		if (numero % test_factor == 0)
+		{
+		return FALSE;
+		}
 	}
 	return numero > 1;
 }
