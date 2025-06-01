@@ -30,7 +30,6 @@ typedef struct {
 
 t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
 int registroTabla = 0;
-FILE  *yyin;
 char *yyltext;
 int contVar = 0;
 int comentarioAnidado = 0;
@@ -261,20 +260,6 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
 		}
 	}
 };
-
-/*int main(int argc, char *argv[])
-{
-    if ((yyin = fopen(argv[1], "rt")) == NULL) {
-        printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-    }
-    else
-    { 
-    	yyparse();
-    }
-    crearTablaDeSimbolos();
-	fclose(yyin);
-    return SALIDA_EXITOSA;
-}*/
 
 void mostrarTablaDeSimbolos()
 {
