@@ -425,7 +425,8 @@ sum_first_primes:
 			{
 				valor--;
 				char aux[50];
-				ponerEnPolaca(&polaca, itoa(x, aux, 10));
+				snprintf(aux, sizeof(aux), "%d", x);
+        		ponerEnPolaca(&polaca, aux);
 				ponerEnPolaca(&polaca, "+");
 			}
 			x++;
