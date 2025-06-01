@@ -78,7 +78,7 @@ int contadorWhile = 0;
 enum EnumTipoCondicion tipoCondicion;
 
 int yystopparser = 0;
-FILE  *yyin;
+extern FILE  *yyin;
 
 %}
 

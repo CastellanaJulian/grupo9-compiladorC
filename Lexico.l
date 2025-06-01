@@ -17,8 +17,8 @@
 #define REGISTROS_MAXIMO 1000
 #define NOMBRE_ARCHIVO_TABLA_DE_SIMBOLOS "symbol-table.txt"
 
-#define TIPO_FLOAT  "CTE_FLOAT"
-#define TIPO_INT    "CTE_INT"
+#define TIPO_FLOAT "CTE_FLOAT"
+#define TIPO_INT "CTE_INT"
 #define TIPO_STR "CTE_STR"
 
 typedef struct {
