@@ -17,18 +17,18 @@
 #define REGISTROS_MAXIMO 1000
 #define NOMBRE_ARCHIVO_TABLA_DE_SIMBOLOS "symbol-table.txt"
 
-#define TIPO_FLOAT "CTE_FLOAT"
-#define TIPO_INT "CTE_INT"
-#define TIPO_STR "CTE_STR"
+#define CONSTANTE_FLOAT "CTE_FLOAT"
+#define CONSTANTE_INT "CTE_INT"
+#define CONSTANTE_STR "CTE_STR"
 
 typedef struct {
     char lexema[50];
     char tipo[50];
     char valor[50];
     int longitud;
-} t_symbol_table;
+} TablaDeSimbolos;
 
-t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
+TablaDeSimbolos tablaDeSimbolos[REGISTROS_MAXIMO];
 int registroTabla = 0;
 char *yyltext;
 int contVar = 0;
@@ -41,6 +41,8 @@ int validarCadena(char* str);
 void agregarATablaDeSimbolos(char* str, int esConstante, int esTipo);
 void mostrarTablaDeSimbolos();
 int crearTablaDeSimbolos();
+char * reemplazarCaracter(char const * const original,  char const * const pattern,  char const * const replacement);
+char* normalizar(char* cad);
 
 %}
 
@@ -237,13 +239,13 @@ void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo)
             strcpy(tablaDeSimbolos[registroTabla].valor, lexema);
             
             if (lexema[0] == '"' && lexema[strlen(lexema)-1] == '"') {
-                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_STR);
+                strcpy(tablaDeSimbolos[registroTabla].tipo, CONSTANTE_STR);
                 tablaDeSimbolos[registroTabla].longitud = strlen(lexema);
             }
             else if (strchr(lexema, '.') != NULL)
-                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_FLOAT);
+                strcpy(tablaDeSimbolos[registroTabla].tipo, CONSTANTE_FLOAT);
             else
-                strcpy(tablaDeSimbolos[registroTabla].tipo, TIPO_INT);
+                strcpy(tablaDeSimbolos[registroTabla].tipo, CONSTANTE_INT);
         }
         else
         {
@@ -293,6 +295,7 @@ int crearTablaDeSimbolos()
 int buscarEnTablaDeSimbolos (char* nombre)
 {
 	int i;
+    strcpy(nombre, normalizar(nombre));
 	for(i = 0; i < REGISTROS_MAXIMO; i++)
     {
         if(strcmp(tablaDeSimbolos[i].lexema, nombre) == 0)
@@ -305,4 +308,49 @@ int buscarEnTablaDeSimbolos (char* nombre)
         }
 	}
 	return -1;
+}
+
+char * reemplazarCaracter(char const * const original,  char const * const pattern,  char const * const replacement)
+{
+	size_t const replen = strlen(replacement);
+	size_t const patlen = strlen(pattern);
+	size_t const orilen = strlen(original);
+	size_t patcnt = 0;
+	const char * oriptr;
+	const char * patloc;
+	
+	for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
+	{
+		patcnt++;
+	}
+	
+	size_t const retlen = orilen + patcnt * (replen - patlen);
+    char * const returned = (char *) malloc( sizeof(char) * (retlen + 1) );
+    
+    if (returned != NULL)
+    {
+		char * retptr = returned;
+		
+		for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
+		{
+			size_t const skplen = patloc - oriptr;
+			strncpy(retptr, oriptr, skplen);
+			retptr += skplen;
+			strncpy(retptr, replacement, replen);
+			retptr += replen;
+		}
+	
+		strcpy(retptr, oriptr);
+	}
+	
+	return returned;
+}
+
+char* normalizar(char* cad)
+{
+    char *auxCad = (char *) malloc( sizeof(char) * (strlen(cad)) + 2);
+    strcpy(auxCad,reemplazarCaracter(cad,".","p"));
+    strcpy(auxCad,reemplazarCaracter(auxCad,"\"",""));
+    strcpy(auxCad,reemplazarCaracter(auxCad," ","_"));
+    return auxCad;
 }

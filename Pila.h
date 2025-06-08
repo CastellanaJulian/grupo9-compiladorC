@@ -16,6 +16,8 @@ enum tipoDato {
 
 typedef struct
 {
+	char *cadena;
+	char *dataType;
 	int cantExpresiones;
 	int salto1;
 	int salto2;

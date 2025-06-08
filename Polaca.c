@@ -62,9 +62,9 @@ int ponerEnPolacaNro (Polaca* pp, int pos, char *cadena)
     return ERROR;
 }
 
-void guardarPolaca(Polaca *pp)
+void guardarPolaca(Polaca* pp, Polaca* ppASM)
 {
-	FILE* pt = fopen("intermediate-code.txt","w+");
+	FILE*pt=fopen("intermediate-code.txt","w+");
 	NodoPolaca* pn;
 	if(!pt)
 	{
@@ -72,10 +72,11 @@ void guardarPolaca(Polaca *pp)
 		return;
 	}
 	while(*pp)
-    {
-        pn=*pp;
+    {	
+        pn = *pp;
+		ponerEnPolaca(ppASM, pn->info.cadena);
         fprintf(pt, "%s\n",pn->info.cadena);
-        *pp=(*pp)->psig;
+	  	*pp=(*pp)->psig;
         free(pn);
     }
 	fclose(pt);

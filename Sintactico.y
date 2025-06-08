@@ -14,6 +14,9 @@
 #define TIPO_INT "Int"
 #define TIPO_FLOAT "Float"
 #define TIPO_STRING "String"
+#define CONSTANTE_FLOAT "CTE_FLOAT"
+#define CONSTANTE_INT "CTE_INT"
+#define CONSTANTE_STR "CTE_STR"
 #define LIMITE_SUPERIOR_ENTERO 65535
 #define REGISTROS_MAXIMO 1000
 #define TRUE 1
@@ -43,28 +46,35 @@ typedef struct
     char tipo[50];
     char valor[50];
     int longitud;
-} t_symbol_table;
+} TablaDeSimbolos;
 
 /******************* Declaraciones Implicitas *******************/
 
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
 extern int crearTablaDeSimbolos();
-extern t_symbol_table tablaDeSimbolos[REGISTROS_MAXIMO];
+extern TablaDeSimbolos tablaDeSimbolos[REGISTROS_MAXIMO];
 extern char* yytext;
 extern int yylineno;
+extern int registroTabla;
+extern FILE  *yyin;
+extern char* reemplazarCaracter(char const * const,  char const * const,  char const * const);
 
 /******************* Funciones *******************/
 
 int yyerror();
 int yylex();
 bool is_prime (int numero);
+void generarAssembler(Polaca*);
+void generarCabecera(FILE* pf);
 
 /******************* Variables Globales *******************/
 
 Pila pilaIf;
 Pila pilaWhile;
+Pila pilaASM;
 Polaca polaca;
+Polaca polacaASM;
 
 enum and_or ultimoOperadorLogico;
 
@@ -78,7 +88,9 @@ int contadorWhile = 0;
 enum EnumTipoCondicion tipoCondicion;
 
 int yystopparser = 0;
-extern FILE  *yyin;
+int auxiliaresNecesarios=0;
+
+FILE * pf;	//Ver de pasarlo a la funcion generarAssembler
 
 %}
 
@@ -778,6 +790,8 @@ int main(int argc, char *argv[])
 {
 	crearPila(&pilaIf);
 	crearPolaca(&polaca);
+	crearPolaca(&polacaASM);
+	crearPila(&pilaASM);
 	if ((yyin = fopen(argv[1], "rt")) == NULL)
 	{
 		printf("\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
@@ -790,8 +804,11 @@ int main(int argc, char *argv[])
 	// mostrarTablaDeSimbolos();
 	crearTablaDeSimbolos();
 	fclose(yyin);
-	guardarPolaca(&polaca);
-	return 0;
+	guardarPolaca(&polaca, &polacaASM);
+	printf("\nPOLACA GENERADA\n");	
+	generarAssembler(&polacaASM);
+	printf("\nASSEMBLER GENERADO\n");
+  	return 0;
 }
 
 bool is_prime (int numero)
@@ -808,4 +825,454 @@ bool is_prime (int numero)
 		}
 	}
 	return numero > 1;
+}
+
+void generarCabecera(FILE* pf)
+{
+	fprintf(pf, "\nINCLUDE asm\\macros2.asm\t\t;Biblioteca\n");
+	fprintf(pf, "INCLUDE asm\\number.asm\t\t;Biblioteca\n");
+
+	fprintf(pf, "\nINCLUDE macros2.asm\t\t;Biblioteca\n");
+	fprintf(pf, "INCLUDE number.asm\t\t;Biblioteca\n");
+
+	fprintf(pf, "\n.MODEL LARGE\t\t;Modelo de memoria\n");
+	fprintf(pf, ".386\t\t;Tipo de procesador\n");
+	fprintf(pf, ".STACK 200h\t\t;Bytes en el stack\n");
+
+	fprintf(pf, "\t\n.DATA\t\t;Inicializa el segmento de datos\n");
+    fprintf(pf, "\tTRUE equ 1\n");
+    fprintf(pf, "\tFALSE equ 0\n");
+    fprintf(pf, "\tMAXTEXTSIZE equ %d\n",CADENA_MAXIMA);
+}
+
+void generarAssembler(Polaca* pp)
+{
+	NodoPolaca* auxPolaca;
+	auxPolaca = *pp;
+	
+	int i;
+	int nroAuxReal = 0;
+	int nroAuxEntero = 0;
+	
+	char aux1[CADENA_MAXIMA] = "aux\0";
+	char aux2[CADENA_MAXIMA];
+	char ultimoTipo[CADENA_MAXIMA] = "none";
+	char ultimaCadena[CADENA_MAXIMA];
+	
+	int huboAsignacion=TRUE;
+	
+	int huboSalto=FALSE;
+	
+	pf = fopen("Final.asm", "w");
+	if (pf == NULL)
+	{
+		printf("Error al abrir el archivo Final.asm\n");
+		exit(1);
+	}
+
+	generarCabecera(pf);
+	
+	for(i=0; i < registroTabla; i++)
+    {
+		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 && atoi((tablaDeSimbolos[i]).valor) == 0 )
+		{
+			fprintf(pf, "\t_%s dd ?\n",(tablaDeSimbolos[i]).lexema);
+		}
+		
+		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 && atoi((tablaDeSimbolos[i]).valor) == 0 )
+		{
+			fprintf(pf, "\t_%s dd ?\n",(tablaDeSimbolos[i]).lexema);
+		}
+		
+		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 && strcmp(tablaDeSimbolos[i].valor, "") == 0)
+		{
+			fprintf(pf, "\t_%s db MAXTEXTSIZE dup(?), '$'\n",tablaDeSimbolos[i].lexema);
+		}
+		
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 ) && atoi((tablaDeSimbolos[i]).valor) != 0) 
+		{
+			fprintf(pf, "\t_%s dd %s\n",(tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor);
+		}
+		
+		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 && strcmp(tablaDeSimbolos[i].valor, "") != 0)
+		{
+			int longitud = (tablaDeSimbolos[i]).longitud;
+			int size = CADENA_MAXIMA - longitud;
+			fprintf(pf, "\t_%s db %s, '$', %d dup(?)\n", (tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor, size);
+		}
+	}
+
+	// AUXILIARES
+	for(i = 0; i < auxiliaresNecesarios; i++)
+	{
+		fprintf(pf,"\t_auxR%d \tDD 0.0\n",i);
+	}
+	
+	for(i=0;i<auxiliaresNecesarios;i++)
+	{
+		fprintf(pf,"\t_auxE%d \tDW 0\n",i);
+	}
+	
+	// CÓDIGO
+	fprintf(pf,"\n.CODE\n.startup\n\tmov AX,@DATA\n\tmov DS,AX\n");
+
+	while(*pp)
+    {
+		NodoPolaca* auxPolaca = *pp;
+		char linea[CADENA_MAXIMA];
+		int pos;
+		strcpy(linea, auxPolaca->info.cadena);
+
+		// VARIABLES
+		if((pos = buscarEnTablaDeSimbolos(linea)) != ERROR && (strcmp(tablaDeSimbolos[pos].valor, VACIO) == 0 || atoi((tablaDeSimbolos[pos]).valor) == 0))
+		{
+			//printf("Variable encontrada: %s\n", linea);
+			Informacion info;
+			info.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+			strcpy(info.cadena, linea);
+			info.dataType = tablaDeSimbolos[pos].tipo;
+			if(pilaASM || huboAsignacion == FALSE)
+			{
+				huboAsignacion = TRUE;
+			}
+			else
+			{
+				huboAsignacion = FALSE;
+			}
+			//printf("Info cadena: %s, tipo: %s\n", info.cadena, info.dataType);
+			ponerEnPila(&pilaASM, &info);
+			strcpy(ultimoTipo, info.dataType);
+		}
+	
+		// CONSTANTES
+		if((pos=buscarEnTablaDeSimbolos(linea)) != ERROR && (strcmp(tablaDeSimbolos[pos].valor, "") != 0 || atoi((tablaDeSimbolos[pos]).valor) != 0))
+		{
+			//printf("Constante encontrada: %s\n", linea);
+			Informacion info2;
+			info2.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+			strcpy(info2.cadena, linea);
+			info2.dataType = tablaDeSimbolos[pos].tipo;
+			//printf("Info cadena: %s, tipo: %s\n", info2.cadena, info2.dataType);
+			ponerEnPila(&pilaASM, &info2);
+			if(strcmp(info2.dataType, TIPO_STRING) != 0 || strcmp(info2.dataType, CONSTANTE_STR) == 0)
+			{
+				if(!pilaASM)
+				{
+					huboAsignacion = FALSE;
+				}
+			}
+			strcpy(ultimoTipo, info2.dataType);
+		}
+	
+		// MULTIPLICACIÓN
+		if(strcmp(linea, "*") == 0)
+		{
+			Informacion *op1 = sacarDePila(&pilaASM);
+			Informacion *op2;
+			Informacion info;
+			if(strcmp(op1->dataType, TIPO_INT) == 0 || strcmp(op1->dataType, CONSTANTE_INT) == 0)
+			{
+				fprintf(pf, ";MULTIPLICACION DE ENTEROS\n");
+				op2 = sacarDePila(&pilaASM);
+				fprintf(pf,"\tfild \t_%s\n", op1->cadena);		//FILD	OP1
+				fprintf(pf,"\tfimul \t_%s\n", op2->cadena); 	//FIMUL	OP2
+				strcpy(aux1, "auxE");							//@aux1 = "auxE"
+				itoa(nroAuxEntero, aux2, 10);					//@aux2 = nroAuxEntero 
+				strcat(aux1, aux2);								//auxE	@aux2
+				fprintf(pf,"\tfistp \t_%s\n", aux1);			//FISTP	@aux1
+				strcpy(info.dataType, TIPO_INT);
+				info.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena, aux1);
+				ponerEnPila(&pilaASM, &info);
+				nroAuxEntero++;
+			}
+			else if (strcmp(op1->dataType, TIPO_FLOAT) == 0 || strcmp(op1->dataType, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf,";MULTIPLICACION DE REALES\n");
+				op2 = sacarDePila(&pilaASM);
+				fprintf(pf,"\tfld \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfld \t_%s\n", op2->cadena);
+				fprintf(pf,"\tfmul\n");
+				strcpy(aux1,"auxR");
+				itoa(nroAuxReal, aux2, 10);
+				strcat(aux1, aux2);
+				fprintf(pf,"\tfstp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_FLOAT);
+				info.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena, aux1);
+				ponerEnPila(&pilaASM, &info);
+				nroAuxReal++;
+			}
+		}
+
+		// SUMA
+		if(strcmp(linea, "+") == 0 )
+		{
+			Informacion *op1 = sacarDePila(&pilaASM);
+			Informacion *op2;
+			Informacion info;
+			if(strcmp(op1->dataType, TIPO_INT) == 0 || strcmp(op1->dataType, CONSTANTE_INT) == 0)
+			{
+				fprintf(pf, ";SUMA DE ENTEROS\n");
+				op2 = sacarDePila(&pilaASM);
+				fprintf(pf, "\tfild \t_%s\n", op1->cadena);
+				fprintf(pf, "\tfiadd \t_%s\n", op2->cadena); 
+				strcpy(aux1, "auxE");
+				itoa(nroAuxEntero, aux2, 10);
+				strcat(aux1, aux2);
+				fprintf(pf,"\tfistp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_INT);
+				info.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena, aux1);
+				ponerEnPila(&pilaASM, &info);
+				nroAuxEntero++;
+			}
+			else if (strcmp(op1->dataType, TIPO_FLOAT) == 0 || strcmp(op1->dataType, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf, ";SUMA DE REALES\n");
+				op2 = sacarDePila(&pilaASM);
+				fprintf(pf, "\tfld \t_%s\n", op1->cadena);
+				fprintf(pf, "\tfld \t_%s\n", op2->cadena);
+				fprintf(pf, "\tfadd\n");
+				strcpy(aux1, "auxR");
+				itoa(nroAuxReal, aux2, 10);
+				strcat(aux1, aux2);
+				fprintf(pf, "\tfstp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_FLOAT);
+				info.cadena = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena, aux1);
+				ponerEnPila(&pilaASM, &info);
+				nroAuxReal++;
+			}
+		}
+
+		// DIVISIÓN
+		if(strcmp(linea, "/") == 0 )
+		{
+			Informacion *op1=sacarDePila(&pilaASM);
+			Informacion *op2=sacarDePila(&pilaASM);;
+			Informacion info;
+
+			if(strcmp(op1->dataType, TIPO_INT) == 0 || strcmp(op1->dataType, CONSTANTE_INT) == 0)
+			{
+				fprintf(pf,";DIVISION DE ENTEROS\n");
+				fprintf(pf,"\tfild \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfidivr \t_%s\n", op2->cadena); 
+				strcpy(aux1,"auxE");
+				itoa(nroAuxEntero,aux2,10);
+				strcat(aux1,aux2);
+				fprintf(pf,"\tfistp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_INT);
+				info.cadena=(char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena,aux1);
+				ponerEnPila(&pilaASM,&info);
+				nroAuxEntero++;
+			}
+			else if(strcmp(op1->dataType, TIPO_FLOAT) == 0 || strcmp(op1->dataType, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf,";DIVISION DE REALES\n");
+				fprintf(pf,"\tfld \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfld \t_%s\n", op2->cadena);
+				fprintf(pf,"\tfdivr\n");
+				strcpy(aux1,"auxR");
+				itoa(nroAuxReal,aux2,10);
+				strcat(aux1,aux2);
+				fprintf(pf,"\tfstp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_FLOAT);
+				info.cadena=(char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena,aux1);
+				ponerEnPila(&pilaASM,&info);
+				nroAuxReal++;	
+			}
+		}
+
+		// RESTA
+		if(strcmp(linea, "-") == 0)
+		{
+			Informacion *op1 = sacarDePila(&pilaASM);
+			Informacion *op2 = sacarDePila(&pilaASM);;
+			Informacion info;
+			
+			if(strcmp(op1->dataType, TIPO_INT) == 0 || strcmp(op1->dataType, CONSTANTE_INT) == 0)
+			{
+				fprintf(pf,";RESTA DE ENTEROS\n");
+				op2=sacarDePila(&pilaASM);
+				fprintf(pf,"\tfild \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfisubr \t_%s\n", op2->cadena); 
+				strcpy(aux1,"auxE");
+				itoa(nroAuxEntero,aux2,10);
+				strcat(aux1,aux2);
+				fprintf(pf,"\tfistp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_INT);
+				info.cadena=(char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena,aux1);
+				ponerEnPila(&pilaASM,&info);
+				nroAuxEntero++;
+			}
+			else if (strcmp(op1->dataType, TIPO_FLOAT) == 0 || strcmp(op1->dataType, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf,";RESTA DE REALES\n");
+				op2=sacarDePila(&pilaASM);
+				fprintf(pf,"\tfld \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfld \t_%s\n", op2->cadena);
+				fprintf(pf,"\tfsubr\n");
+				strcpy(aux1,"auxR");
+				itoa(nroAuxReal,aux2,10);
+				strcat(aux1,aux2);
+				fprintf(pf,"\tfstp \t_%s\n", aux1);
+				strcpy(info.dataType, TIPO_FLOAT);
+				info.cadena=(char*)malloc(sizeof(char)*CADENA_MAXIMA);
+				strcpy(info.cadena,aux1);
+				ponerEnPila(&pilaASM,&info);
+				nroAuxReal++;
+			}
+		}
+
+		// COMPARADORES
+		if(strcmp(linea, CMP) == 0)
+		{
+			Informacion *op1= sacarDePila(&pilaASM);
+			Informacion *op2= sacarDePila(&pilaASM);
+		
+			if(strcmp(op1->dataType, TIPO_FLOAT) == 0 || strcmp(op1->dataType, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf,"\tfld \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfld \t_%s\n", op2->cadena);
+			}
+			else
+			{	
+				fprintf(pf,"\tfild \t_%s\n", op1->cadena);
+				fprintf(pf,"\tfild \t_%s\n", op2->cadena);
+			}
+		}
+	
+		if(huboSalto == TRUE){
+			fprintf(pf,"\tET_%s\n", linea);
+			huboSalto = FALSE;
+		}
+	
+		//>
+		if(strcmp(linea, BLE) == 0)
+		{	
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tjbe");
+			huboSalto=TRUE;
+		}
+
+		//<
+		if(strcmp(linea, BGE) == 0)
+		{
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tjae");
+			huboSalto=TRUE;
+		}
+
+		//!=
+		if(strcmp(linea, BEQ) == 0)
+		{
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tje");
+			huboSalto=TRUE;
+		}
+
+		//==
+		if(strcmp(linea, BNE) == 0)
+		{
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tjne");
+			huboSalto=TRUE;
+		}
+
+		//>=
+		if(strcmp(linea, BLT) == 0)
+		{
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tjb");
+			huboSalto=TRUE;
+		}
+
+		//<=
+		if(strcmp(linea, BGT) == 0)
+		{
+			fprintf(pf,"\tfcomp\n\tfstsw\tax\n\tfwait\n\tsahf\n\tja");
+			huboSalto=TRUE;
+		}	
+
+		if(strcmp(linea, BI) == 0)
+		{
+			fprintf(pf,"\tjmp");
+			huboSalto=TRUE;
+		}
+
+		// ETIQUETAS
+		if(strchr(linea, '#') != 0)
+		{
+			fprintf(pf,"ET_%s:\n",reemplazarCaracter(linea,"#",""));
+		}
+
+		// ASIGNACIÓN
+		if(strcmp(linea, "=") == 0)
+		{
+			if (strcmp(ultimoTipo, TIPO_STRING) == 0 || strcmp(ultimoTipo, CONSTANTE_STR) == 0)
+			{
+				fprintf(pf,";ASIGNACION CADENA\n");
+				fprintf(pf,"\tmov ax, @DATA\n\tmov ds, ax\n\tmov es, ax\n");
+				fprintf(pf,"\tmov si, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
+				fprintf(pf,"\tmov di, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
+			}
+			else if (strcmp(ultimoTipo, TIPO_INT) == 0 || (strcmp(ultimoTipo, CONSTANTE_INT) == 0))
+			{
+				fprintf(pf,";ASIGNACION ENTERA\n");
+				Informacion *op1 = sacarDePila(&pilaASM);
+				Informacion *op2 = sacarDePila(&pilaASM);
+				fprintf(pf,"\tfild \t_%s\n", op1->cadena);
+				if(op2)
+				{
+					fprintf(pf,"\tfstp \t_%s\n",op2->cadena);
+				}
+				huboAsignacion = TRUE;
+			}
+			else if (strcmp(ultimoTipo, TIPO_FLOAT) == 0 || strcmp(ultimoTipo, CONSTANTE_FLOAT) == 0)
+			{
+				fprintf(pf,";ASIGNACION FLOAT\n");
+				Informacion *op1 = sacarDePila(&pilaASM);
+				Informacion *op2 = sacarDePila(&pilaASM);
+				fprintf(pf,"\tfld \t_%s\n", op1->cadena);
+				if(op2)
+				{
+					fprintf(pf,"\tfstp \t_%s\n", op2->cadena);
+				}
+				huboAsignacion = TRUE;
+			}
+		}
+
+		// WRITE
+		if(strcmp(linea,"WRITE") == 0)
+		{
+			fprintf(pf,";SALIDA POR CONSOLA\n");
+			if (strcmp(ultimoTipo, TIPO_INT) == 0)
+			{
+				fprintf(pf,"\tdisplayInteger \t_%s,3\n\tnewLine 1\n",sacarDePila(&pilaASM)->cadena);	
+			}
+			else if (strcmp(ultimoTipo, TIPO_FLOAT) == 0){
+				fprintf(pf,"\tdisplayFloat \t_%s,3\n\tnewLine 1\n",sacarDePila(&pilaASM)->cadena);	
+			}
+			else if (strcmp(ultimoTipo, TIPO_STRING) == 0)
+			{
+				fprintf(pf,"\tdisplayString \t_%s\n\tnewLine 1\n",sacarDePila(&pilaASM)->cadena);
+			}
+		}
+
+		// READ
+		if(strcmp(linea,"READ") == 0)
+		{
+			fprintf(pf,";ENTRADA POR CONSOLA\n");
+			if(strcmp(ultimoTipo, TIPO_STRING) == 0)
+			{
+				fprintf(pf,"\tgetString \t_%s\n",sacarDePila(&pilaASM)->cadena);
+			}
+			else
+			{
+				fprintf(pf,"\tgetFloat \t_%s\n",sacarDePila(&pilaASM)->cadena);
+			}
+		}
+		*pp=(*pp)->psig;
+	}
+	fprintf(pf,"\nmov ax, 4C00h\nint 21h\nend");
+	fclose(pf);
 }

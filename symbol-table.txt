@@ -8,17 +8,4 @@
        f	|	        	|	   Float	|	       0
        g	|	        	|	   Float	|	       0
       _3	|	       3	|	 CTE_INT	|	       0
-_"hola mundo"	|	"hola mundo"	|	 CTE_STR	|	      12
       _6	|	       6	|	 CTE_INT	|	       0
-_"amarillo"	|	"amarillo"	|	 CTE_STR	|	      10
-_"verde"	|	 "verde"	|	 CTE_STR	|	       7
-      _5	|	       5	|	 CTE_INT	|	       0
-      _9	|	       9	|	 CTE_INT	|	       0
-    _1.0	|	     1.0	|	CTE_FLOAT	|	       0
-  _7.255	|	   7.255	|	CTE_FLOAT	|	       0
-      _0	|	       0	|	 CTE_INT	|	       0
-      _1	|	       1	|	 CTE_INT	|	       0
-      _8	|	       8	|	 CTE_INT	|	       0
-     _10	|	      10	|	 CTE_INT	|	       0
-      _4	|	       4	|	 CTE_INT	|	       0
-    _"H"	|	     "H"	|	 CTE_STR	|	       3

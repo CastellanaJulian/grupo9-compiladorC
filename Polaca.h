@@ -38,7 +38,7 @@ typedef struct SNodoPolaca
 
 typedef NodoPolaca* Polaca;
 
-void guardarPolaca(Polaca*);
+void guardarPolaca(Polaca*, Polaca*);
 
 int ponerEnPolacaNro(Polaca*, int, char *);
 
