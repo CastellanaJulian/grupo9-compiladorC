@@ -66,7 +66,7 @@ typedef struct
 extern int crearTablaDeSimbolos();
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
-extern char* reemplazarCaracter(char const *,  char const *,  char const *);
+extern char* reemplazarCaracter(char const *, char const *, char const *);
 
 extern TablaDeSimbolos tablaDeSimbolos[REGISTROS_MAXIMO];
 extern char* yytext;
@@ -1179,19 +1179,19 @@ void manejarAsignacion(const char* operacion, FILE* pf, const char* ultimoTipo, 
 		if (strcmp(ultimoTipo, TIPO_STRING) == 0 || strcmp(ultimoTipo, CONSTANTE_STR) == 0)
 		{
 			fprintf(pf, ";ASIGNACION CADENA\n");
-			fprintf(pf, "\tmov ax, @DATA\n\tmov ds, ax\n\tmov es, ax\n");
-			fprintf(pf, "\tmov si, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
-			fprintf(pf, "\tmov di, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tMOV AX, @DATA\n\tMOV DS, AX\n\tMOV ES, AX\n");
+			fprintf(pf, "\tMOV SI, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tMOV DI, OFFSET\t_%s\n", sacarDePila(&pilaASM)->cadena);
 		}
 		else if (strcmp(ultimoTipo, TIPO_INT) == 0 || (strcmp(ultimoTipo, CONSTANTE_INT) == 0))
 		{
 			fprintf(pf, ";ASIGNACION ENTERA\n");
 			Informacion* operando1 = sacarDePila(&pilaASM);
 			Informacion* operando2 = sacarDePila(&pilaASM);
-			fprintf(pf,"\tFILD \t_%s\n", operando1->cadena);
+			fprintf(pf,"\tFILD\t_%s\n", operando1->cadena);
 			if(operando2)
 			{
-				fprintf(pf,"\tFSTP \t_%s\n",operando2->cadena);
+				fprintf(pf,"\tFSTP\t_%s\n",operando2->cadena);
 			}
 			*huboAsignacion = TRUE;
 		}
@@ -1203,7 +1203,7 @@ void manejarAsignacion(const char* operacion, FILE* pf, const char* ultimoTipo, 
 			fprintf(pf,"\tFLD \t_%s\n", operando1->cadena);
 			if(operando2)
 			{
-				fprintf(pf,"\tFSTP \t_%s\n", operando2->cadena);
+				fprintf(pf,"\tFSTP\t_%s\n", operando2->cadena);
 			}
 			*huboAsignacion = TRUE;
 		}
@@ -1257,7 +1257,6 @@ void finalizarEjecucionCodigoAssembler(FILE* pf)
 	fprintf(pf, "\nINT\t21H");
 	fprintf(pf, "\nEND");
 }
-
 
 void generarAssembler(Polaca* pp)
 {
