@@ -87,8 +87,8 @@ void manejarConstantes(char*, char*, int*);
 void manejarOperacionArimetica(const char*, FILE*, char*, char*, int*, int*);
 void manejarComparador(const char*, FILE*, int*);
 void manejarAsignacion(const char*, FILE*, const char*, int*);
-void verificarComandoRead(char*, FILE*, const char*);
-void verificarComandoWrite(char*, FILE*, const char*);
+void manejarComandoRead(char*, FILE*, const char*);
+void manejarComandoWrite(char*, FILE*, const char*);
 void finalizarEjecucionCodigoAssembler(FILE*);
 
 /******************* Variables Globales *******************/
@@ -1210,7 +1210,7 @@ void manejarAsignacion(const char* operacion, FILE* pf, const char* ultimoTipo, 
 	}
 }
 
-void verificarComandoWrite(char* linea, FILE* pf, const char* ultimoTipo)
+void manejarComandoWrite(char* linea, FILE* pf, const char* ultimoTipo)
 {
 	// POR QUE TIENE 3?? Y POR QUE ESTA SOLO EN ENTERO Y FLOTANTE?
 	if(strcmp(linea, "WRITE") == 0)
@@ -1231,7 +1231,7 @@ void verificarComandoWrite(char* linea, FILE* pf, const char* ultimoTipo)
 	}
 }
 
-void verificarComandoRead(char* linea, FILE* pf, const char* ultimoTipo)
+void manejarComandoRead(char* linea, FILE* pf, const char* ultimoTipo)
 {
 	if(strcmp(linea, "READ") == 0)
 	{
@@ -1296,8 +1296,8 @@ void generarAssembler(Polaca* pp)
 		manejarComparador(linea, pf, &huboSalto);
 		manejarEtiqueta(linea, pf);
 		manejarAsignacion(linea, pf, ultimoTipo, &huboAsignacion);
-		verificarComandoWrite(linea, pf, ultimoTipo);
-		verificarComandoRead(linea, pf, ultimoTipo);
+		manejarComandoWrite(linea, pf, ultimoTipo);
+		manejarComandoRead(linea, pf, ultimoTipo);
 		*pp = (*pp)->psig;
 	}
 	finalizarEjecucionCodigoAssembler(pf);
