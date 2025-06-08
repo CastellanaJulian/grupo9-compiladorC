@@ -5,5 +5,16 @@ INIT
    f,g:Float
 }
 
-b = 3;
+b = 10;
 a = b + 6;
+
+a = 14 * 25;
+
+#+ No funciona con constantes +#
+READ(a);
+WRITE(b);
+
+if (b > 10)
+{
+   a = 5;
+}

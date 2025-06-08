@@ -1,7 +1,4 @@
 
-INCLUDE asm\macros2.asm		;Biblioteca
-INCLUDE asm\number.asm		;Biblioteca
-
 INCLUDE macros2.asm		;Biblioteca
 INCLUDE number.asm		;Biblioteca
 
@@ -10,9 +7,9 @@ INCLUDE number.asm		;Biblioteca
 .STACK 200h		;Bytes en el stack
 	
 .DATA		;Inicializa el segmento de datos
-	TRUE equ 1
-	FALSE equ 0
-	MAXTEXTSIZE equ 32
+	TRUE EQU 1
+	FALSE EQU 0
+	MAXTEXTSIZE EQU 32
 	_a dd ?
 	_b dd ?
 	_c dd ?
@@ -24,15 +21,41 @@ INCLUDE number.asm		;Biblioteca
 
 .CODE
 .startup
-	mov AX,@DATA
-	mov DS,AX
+	MOV AX,@DATA
+	MOV DS,AX
 ;ASIGNACION ENTERA
-	fild 	_3
-	fstp 	_b
+	FILD 	_10
+	FSTP 	_b
+;SUMA DE ENTEROS
+	FILD	_6
+	FIADD	_b
+	FISTP	_auxE0
 ;ASIGNACION ENTERA
-	fild 	_b
-	fstp 	_a
+	FILD 	_auxE0
+	FSTP 	_a
+;MULTIPLICACION DE ENTEROS
+	FILD	_25
+	FIMUL	_14
+	FISTP	_auxE1
+;ASIGNACION ENTERA
+	FILD 	_auxE1
+	FSTP 	_a
+;ENTRADA POR CONSOLA
+	obtenerEntero 	_a
+;SALIDA POR CONSOLA
+	mostrarEntero 	_b,3
+	nuevaLinea 1
+	FILD	_10
+	FILD	_b
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JBE	ET_25
+;ASIGNACION ENTERA
+	FILD 	_5
+	FSTP 	_a
 
-mov ax, 4C00h
-int 21h
-end
+MOV	X, 4C00H
+INT	21H
+END
