@@ -1213,21 +1213,20 @@ void manejarAsignacion(const char* operacion, FILE* pf, const char* ultimoTipo, 
 
 void manejarComandoWrite(char* linea, FILE* pf, const char* ultimoTipo)
 {
-	// POR QUE TIENE 3?? Y POR QUE ESTA SOLO EN ENTERO Y FLOTANTE?
 	if(strcmp(linea, "WRITE") == 0)
 	{
 		fprintf(pf, ";SALIDA POR CONSOLA\n");
 		if (strcmp(ultimoTipo, TIPO_INT) == 0 || strcmp(ultimoTipo, CONSTANTE_INT) == 0)
 		{
-			fprintf(pf, "\tmostrarEntero \t_%s,3\n\tnuevaLinea 1\n", sacarDePila(&pilaASM)->cadena);	
+			fprintf(pf, "\tDisplayInteger\t_%s,3\n\tNewLine 1\n", sacarDePila(&pilaASM)->cadena);	
 		}
 		else if (strcmp(ultimoTipo, TIPO_FLOAT) == 0 || strcmp(ultimoTipo, CONSTANTE_FLOAT) == 0)
 		{
-			fprintf(pf, "\tmostrarFlotante \t_%s,3\n\tnuevaLinea 1\n", sacarDePila(&pilaASM)->cadena);	
+			fprintf(pf, "\tDisplayFloat\t_%s,3\n\tNewLine 1\n", sacarDePila(&pilaASM)->cadena);	
 		}
 		else if (strcmp(ultimoTipo, TIPO_STRING) == 0 || strcmp(ultimoTipo, CONSTANTE_STR) == 0)
 		{
-			fprintf(pf, "\tmostrarCadena \t_%s\n\tnuevaLinea 1\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tDisplayString\t_%s\n\tNewLine 1\n", sacarDePila(&pilaASM)->cadena);
 		}
 	}
 }
@@ -1239,15 +1238,15 @@ void manejarComandoRead(char* linea, FILE* pf, const char* ultimoTipo)
 		fprintf(pf, ";ENTRADA POR CONSOLA\n");
 		if(strcmp(ultimoTipo, TIPO_STRING) == 0 || strcmp(ultimoTipo, CONSTANTE_STR) == 0)
 		{
-			fprintf(pf, "\tobtenerCadena \t_%s\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tGetString\t_%s\n", sacarDePila(&pilaASM)->cadena);
 		}
 		else if(strcmp(ultimoTipo, TIPO_INT) == 0 || strcmp(ultimoTipo, CONSTANTE_INT) == 0)
 		{
-			fprintf(pf, "\tobtenerEntero \t_%s\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tGetInteger\t_%s\n", sacarDePila(&pilaASM)->cadena);
 		}
 		else if(strcmp(ultimoTipo, TIPO_FLOAT) == 0 || strcmp(ultimoTipo, CONSTANTE_FLOAT) == 0)
 		{
-			fprintf(pf, "\tobtenerFlotante \t_%s\n", sacarDePila(&pilaASM)->cadena);
+			fprintf(pf, "\tGetFloat\t_%s\n", sacarDePila(&pilaASM)->cadena);
 		}
 	}
 }
