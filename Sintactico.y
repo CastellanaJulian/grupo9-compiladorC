@@ -847,31 +847,32 @@ void declararVariablesEnAssembler(FILE* pf)
 	int i;
 	for(i = 0; i < registroTabla; i++)
     {
-		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 && atoi((tablaDeSimbolos[i]).valor) == 0 )
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_INT) == 0)  && atoi((tablaDeSimbolos[i]).valor) == 0 )
 		{
 			fprintf(pf, "\t_%s dd ?\n", (tablaDeSimbolos[i]).lexema);
 		}
 		
-		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 && atoi((tablaDeSimbolos[i]).valor) == 0 )
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_FLOAT) == 0) && atoi((tablaDeSimbolos[i]).valor) == 0 )
 		{
 			fprintf(pf, "\t_%s dd ?\n", (tablaDeSimbolos[i]).lexema);
 		}
 		
-		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 && strcmp(tablaDeSimbolos[i].valor, VACIO) == 0)
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_STR) == 0) && strcmp(tablaDeSimbolos[i].valor, VACIO) == 0)
 		{
 			fprintf(pf, "\t_%s db MAXTEXTSIZE dup(?), '$'\n", tablaDeSimbolos[i].lexema);
 		}
 		
-		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 ) && atoi((tablaDeSimbolos[i]).valor) != 0) 
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_INT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_INT) || strcmp((tablaDeSimbolos[i]).tipo, TIPO_FLOAT) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_FLOAT) == 0) && atoi((tablaDeSimbolos[i]).valor) != 0) 
 		{
 			fprintf(pf, "\t_%s dd %s\n", (tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor);
 		}
 		
-		if(strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 && strcmp(tablaDeSimbolos[i].valor, VACIO) != 0)
+		if((strcmp((tablaDeSimbolos[i]).tipo, TIPO_STRING) == 0 || strcmp((tablaDeSimbolos[i]).tipo, CONSTANTE_STR))  && strcmp(tablaDeSimbolos[i].valor, VACIO) != 0)
 		{
 			int longitud = (tablaDeSimbolos[i]).longitud;
 			int size = CADENA_MAXIMA - longitud;
-			fprintf(pf, "\t_%s db %s, '$', %d dup(?)\n", (tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor, size);
+			//fprintf(pf, "\t_%s db %s, '$', %d dup(?)\n", (tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor, size);
+			fprintf(pf, "\t%s db %s, '$', %d dup(?)\n", (tablaDeSimbolos[i]).lexema, (tablaDeSimbolos[i]).valor, size);
 		}
 	}
 

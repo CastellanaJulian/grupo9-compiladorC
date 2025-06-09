@@ -18,6 +18,11 @@ INCLUDE number.asm		;Biblioteca
 	_h db MAXTEXTSIZE dup(?), '$'
 	_f dd ?
 	_g dd ?
+	_10 db 10, '$', 32 dup(?)
+	_6 db 6, '$', 32 dup(?)
+	_14 db 14, '$', 32 dup(?)
+	_25 db 25, '$', 32 dup(?)
+	_5 db 5, '$', 32 dup(?)
 
 .CODE
 .startup
