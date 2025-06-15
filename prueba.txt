@@ -5,16 +5,11 @@ INIT
    f,g:Float
 }
 
-b = 10;
-a = b + 6;
-
-a = 14 * 25;
-
-#+ No funciona con constantes +#
-READ(a);
-WRITE(b);
-
-if (b > 10)
+a = 10;
+e = "FIN PROGRAMA";
+WHILE (a != 1)
 {
-   a = 5;
+   a = a - 1;
+   WRITE(a);
 }
+WRITE(e);

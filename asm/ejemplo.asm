@@ -1,83 +1,73 @@
-include macros2.asm
-include number.asm
+INCLUDE macros2.asm
+INCLUDE number.asm
 
-.MODEL  LARGE
+.MODEL LARGE
 .386
 .STACK 200h
 
-MAXTEXTSIZE equ 50
+TRUE		EQU		1
+FALSE		EQU		0
+MAXTEXTSIZE	EQU		32
 
 .DATA
-
-    _n1         dd  ?
-    _n2         dd  ?
-    T_Ingrese_un_numero         db  "Ingrese un numero",'$', 33 dup (?)
-    T_Ingrese_otro_numero           db  "Ingrese otro numero",'$', 31 dup (?)
-    T_El_primer_numero_ingresado_es_mayor_al_segundo            db  "El primer numero ingresado es mayor al segundo",'$', 4 dup (?)
-    T_El_primer_numero_ingresado_es_menor_al_segundo            db  "El primer numero ingresado es menor al segundo",'$', 4 dup (?)
-    T_Los_numeros_son_iguales           db  "Los numeros son iguales",'$', 27 dup (?)
-    _aux            db  MAXTEXTSIZE dup (?),'$'
-    _msgPRESIONE            db  0DH,0AH,"Presione una tecla para continuar...",'$'
-    _NEWLINE            db  0DH,0AH,'$'
+	a		dd		?
+	b		dd		?
+	c		dd		?
+	d		dd		?
+	e		db		MAXTEXTSIZE dup (?), '$'
+	h		db		MAXTEXTSIZE dup (?), '$'
+	f		dd		?
+	g		dd		?
+	_10		dd		10
+	_T_FIN_PROGRAMA		db		"FIN PROGRAMA", '$', 18 dup (?)
+	_1		dd		1
+	auxR0	DD	0.0
+	auxE0	DW	0
 
 .CODE
+.startup
+	MOV AX,@DATA
+	MOV DS,AX
+;ASIGNACION ENTERA
+	FILD	_10
+	FISTP	a
+;ASIGNACION CADENA
+	MOV AX, @DATA
+	MOV DS, AX
+	MOV ES, AX
+	MOV SI, OFFSET	_T_FIN_PROGRAMA
+	MOV DI, OFFSET	e
+	CLD
+COPIA_CADENA_0:
+	LODSB
+	STOSB
+	CMP AL,'$'
+	JNE COPIA_CADENA_0
+ET_6:
+	FILD	_1
+	FILD	a
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JE	ET_21
+;RESTA DE ENTEROS
+	FILD	_1
+	FILD	a
+	FSUBR
+	FISTP	auxE0
+;ASIGNACION ENTERA
+	FILD	auxE0
+	FISTP	a
+;SALIDA POR CONSOLA
+	DisplayInteger	a,3
+	NewLine 1
+	JMP	ET_6
+ET_21:
+;SALIDA POR CONSOLA
+	DisplayString	e
+	NewLine 1
 
-START:
-    mov AX,@DATA
-    mov DS,AX
-    mov es,ax
-    mov dx,OFFSET T_Ingrese_un_numero
-    mov ah,9
-    int 21h
-    newLine 1
-    GetFloat _n1
-    mov dx,OFFSET T_Ingrese_otro_numero
-    mov ah,9
-    int 21h
-    newLine 1
-    GetFloat _n2
-    fld _n1
-    fld _n2
-    fxch
-    fcomp
-    fstsw ax
-    ffree st(0)
-    sahf
-    JBE ET_12
-    mov dx,OFFSET T_El_primer_numero_ingresado_es_mayor_al_segundo
-    mov ah,9
-    int 21h
-    newLine 1
-    JMP ET_18
-ET_12:
-    fld _n1
-    fld _n2
-    fxch
-    fcomp
-    fstsw ax
-    ffree st(0)
-    sahf
-    JAE ET_22
-    mov dx,OFFSET T_El_primer_numero_ingresado_es_menor_al_segundo
-    mov ah,9
-    int 21h
-    newLine 1
-    JMP ET_28
-ET_22:
-    mov dx,OFFSET T_Los_numeros_son_iguales
-    mov ah,9
-    int 21h
-    newLine 1
-ET_28:
-ET_18:
-    mov dx,OFFSET _NEWLINE
-    mov ah,09
-    int 21h
-    mov dx,OFFSET _msgPRESIONE
-    mov ah,09
-    int 21h
-    mov ah, 1
-    int 21h
-    mov ax, 4C00h
-    int 21h
-END START
+MOV	AX, 4C00H
+INT	21H
+END

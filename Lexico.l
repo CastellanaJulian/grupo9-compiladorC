@@ -8,8 +8,8 @@
 
 #define LIMITE_SUPERIOR_ENTERO 65535
 #define LIMITE_INFERIOR_ENTERO -65535
-#define LIMITE_SUPERIOR_FLOTANTE 3.40282e+38
-#define LIMITE_INFERIOR_FLOTANTE -1.17549e-38
+#define LIMITE_SUPERIOR_FLOTANTE 3.4028235e+38
+#define LIMITE_INFERIOR_FLOTANTE -3.4028235e+38
 #define LIMITE_CADENA 32
 
 #define SALIDA_EXITOSA 0
@@ -56,7 +56,7 @@ NUMERO                  [0-9]
 LETRA                   [a-zA-Z]
 
 /* Regex */
-CTE_FLOAT               ({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
+CTE_FLOAT               -?({NUMERO})+"."({NUMERO})*|({NUMERO})*"."({NUMERO})+
 CTE_INT                 -?{NUMERO}+
 CTE_STR                 {QUOTE}[^"]*{QUOTE}
 ID                      {LETRA}({LETRA}|{NUMERO})*
@@ -186,7 +186,8 @@ int validarEntero(char* posibleLexema)
 
 int validarFlotante(char* posibleLexema)
 {
-    int aux = atof(posibleLexema);
+    float aux = atof(posibleLexema);
+    printf("AUX: %f", aux);
     if(aux >= LIMITE_INFERIOR_FLOTANTE && aux <= LIMITE_SUPERIOR_FLOTANTE)
     {
         return 1;            
@@ -295,7 +296,7 @@ int crearTablaDeSimbolos()
 int buscarEnTablaDeSimbolos (char* nombre)
 {
 	int i;
-    strcpy(nombre, normalizar(nombre));
+    //strcpy(nombre, normalizar(nombre));
 	for(i = 0; i < REGISTROS_MAXIMO; i++)
     {
         if(strcmp(tablaDeSimbolos[i].lexema, nombre) == 0)
@@ -310,27 +311,23 @@ int buscarEnTablaDeSimbolos (char* nombre)
 	return -1;
 }
 
-char * reemplazarCaracter(char const * const original,  char const * const pattern,  char const * const replacement)
+char* reemplazarCaracter (char const* const original,  char const* const pattern,  char const* const replacement)
 {
 	size_t const replen = strlen(replacement);
 	size_t const patlen = strlen(pattern);
 	size_t const orilen = strlen(original);
 	size_t patcnt = 0;
-	const char * oriptr;
-	const char * patloc;
-	
+	const char* oriptr;
+	const char* patloc;
 	for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
 	{
 		patcnt++;
 	}
-	
 	size_t const retlen = orilen + patcnt * (replen - patlen);
     char * const returned = (char *) malloc( sizeof(char) * (retlen + 1) );
-    
     if (returned != NULL)
     {
 		char * retptr = returned;
-		
 		for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
 		{
 			size_t const skplen = patloc - oriptr;
@@ -339,18 +336,16 @@ char * reemplazarCaracter(char const * const original,  char const * const patte
 			strncpy(retptr, replacement, replen);
 			retptr += replen;
 		}
-	
 		strcpy(retptr, oriptr);
 	}
-	
 	return returned;
 }
 
 char* normalizar(char* cad)
 {
     char *auxCad = (char *) malloc( sizeof(char) * (strlen(cad)) + 2);
-    strcpy(auxCad,reemplazarCaracter(cad,".","p"));
-    strcpy(auxCad,reemplazarCaracter(auxCad,"\"",""));
-    strcpy(auxCad,reemplazarCaracter(auxCad," ","_"));
+    strcpy(auxCad,reemplazarCaracter(cad, ".", "p"));
+    strcpy(auxCad,reemplazarCaracter(auxCad, "\"", ""));
+    strcpy(auxCad,reemplazarCaracter(auxCad, " ", "_"));
     return auxCad;
 }

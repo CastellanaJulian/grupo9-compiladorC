@@ -1,28 +1,28 @@
+INCLUDE macros2.asm
+INCLUDE number.asm
 
-INCLUDE macros2.asm		;Biblioteca
-INCLUDE number.asm		;Biblioteca
+.MODEL LARGE
+.386
+.STACK 200h
 
-.MODEL LARGE		;Modelo de memoria
-.386		;Tipo de procesador
-.STACK 200h		;Bytes en el stack
-	
-.DATA		;Inicializa el segmento de datos
-	TRUE EQU 1
-	FALSE EQU 0
-	MAXTEXTSIZE EQU 32
-	_a dd ?
-	_b dd ?
-	_c dd ?
-	_d dd ?
-	_e db MAXTEXTSIZE dup(?), '$'
-	_h db MAXTEXTSIZE dup(?), '$'
-	_f dd ?
-	_g dd ?
-	_10 db 10, '$', 32 dup(?)
-	_6 db 6, '$', 32 dup(?)
-	_14 db 14, '$', 32 dup(?)
-	_25 db 25, '$', 32 dup(?)
-	_5 db 5, '$', 32 dup(?)
+TRUE		EQU		1
+FALSE		EQU		0
+MAXTEXTSIZE	EQU		32
+
+.DATA
+	a		dd		?
+	b		dd		?
+	c		dd		?
+	d		dd		?
+	e		db		MAXTEXTSIZE dup (?), '$'
+	h		db		MAXTEXTSIZE dup (?), '$'
+	f		dd		?
+	g		dd		?
+	_10		dd		10
+	_T_FIN_PROGRAMA		db		"FIN PROGRAMA", '$', 18 dup (?)
+	_1		dd		1
+	auxR0	DD	0.0
+	auxE0	DW	0
 
 .CODE
 .startup
@@ -30,37 +30,44 @@ INCLUDE number.asm		;Biblioteca
 	MOV DS,AX
 ;ASIGNACION ENTERA
 	FILD	_10
-	FSTP	_b
-;SUMA DE ENTEROS
-	FILD	_6
-	FIADD	_b
-	FISTP	_auxE0
-;ASIGNACION ENTERA
-	FILD	_auxE0
-	FSTP	_a
-;MULTIPLICACION DE ENTEROS
-	FILD	_25
-	FIMUL	_14
-	FISTP	_auxE1
-;ASIGNACION ENTERA
-	FILD	_auxE1
-	FSTP	_a
-;ENTRADA POR CONSOLA
-	obtenerEntero 	_a
-;SALIDA POR CONSOLA
-	mostrarEntero 	_b,3
-	nuevaLinea 1
-	FILD	_10
-	FILD	_b
+	FISTP	a
+;ASIGNACION CADENA
+	MOV AX, @DATA
+	MOV DS, AX
+	MOV ES, AX
+	MOV SI, OFFSET	_T_FIN_PROGRAMA
+	MOV DI, OFFSET	e
+	CLD
+COPIA_CADENA_0:
+	LODSB
+	STOSB
+	CMP AL,'$'
+	JNE COPIA_CADENA_0
+ET_6:
+	FILD	_1
+	FILD	a
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_25
+	JE	ET_21
+;RESTA DE ENTEROS
+	FILD	_1
+	FILD	a
+	FSUBR
+	FISTP	auxE0
 ;ASIGNACION ENTERA
-	FILD	_5
-	FSTP	_a
+	FILD	auxE0
+	FISTP	a
+;SALIDA POR CONSOLA
+	DisplayInteger	a,3
+	NewLine 1
+	JMP	ET_6
+ET_21:
+;SALIDA POR CONSOLA
+	DisplayString	e
+	NewLine 1
 
-MOV	X, 4C00H
+MOV	AX, 4C00H
 INT	21H
 END
