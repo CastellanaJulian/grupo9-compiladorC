@@ -18,54 +18,90 @@ MAXTEXTSIZE	EQU		320
 	h		db		MAXTEXTSIZE dup (?), '$'
 	f		dd		?
 	g		dd		?
+	_T_Slice_and_Concat		db		"Slice and Concat", '$', 302 dup (?)
 	_3		dd		3
+	_6		dd		6
+	_T_amarillo		db		"amarillo", '$', 310 dup (?)
+	_T_verde		db		"verde", '$', 313 dup (?)
+	_T_verderill		db		"verderill", '$', 309 dup (?)
+	_T_Sum_First_Primes		db		"Sum First Primes", '$', 302 dup (?)
 	_5		dd		5
+	_28		dd		28
+	_T_Sentencias_de_Control_anidadas		db		"Sentencias de Control anidadas", '$', 288 dup (?)
+	_T_Resultado_inicial_de_B		db		"Resultado inicial de B", '$', 296 dup (?)
 	_1		dd		1
 	_2		dd		2
+	_T_Dentro_del_if_b_vale		db		"Dentro del if b vale", '$', 298 dup (?)
 	_NEG_525		dd		-525
-	_T_RESULTADO_DE_B		db		"RESULTADO DE B", '$', 304 dup (?)
+	_T_Resultado_final_de_B		db		"Resultado final de B", '$', 298 dup (?)
+	_5_75		dd		5.75
+	_3_25		dd		3.25
 	auxR0	DD	0.0
 	auxR1	DD	0.0
+	auxR2	DD	0.0
 	auxE0	DW	0
 	auxE1	DW	0
+	auxE2	DW	0
 
 .CODE
 .startup
 	MOV AX,@DATA
 	MOV DS,AX
+;SALIDA POR CONSOLA
+	DisplayString	_T_Slice_and_Concat
+	NewLine 1
+;ASIGNACION CADENA
+	MOV AX, @DATA
+	MOV DS, AX
+	MOV ES, AX
+	MOV SI, OFFSET	_T_verderill
+	MOV DI, OFFSET	e
+	CLD
+COPIA_CADENA_0:
+	LODSB
+	STOSB
+	CMP AL,'$'
+	JNE COPIA_CADENA_0
+;SALIDA POR CONSOLA
+	DisplayString	e
+	NewLine 1
+;SALIDA POR CONSOLA
+	DisplayString	_T_Sum_First_Primes
+	NewLine 1
 ;ASIGNACION ENTERA
-	FILD	_3
+	FILD	_28
 	FISTP	a
+;SALIDA POR CONSOLA
+	DisplayInteger	a,3
+	NewLine 1
+;SALIDA POR CONSOLA
+	DisplayString	_T_Sentencias_de_Control_anidadas
+	NewLine 1
 ;ASIGNACION ENTERA
 	FILD	_5
 	FISTP	b
-ET_6:
+;SALIDA POR CONSOLA
+	DisplayString	_T_Resultado_inicial_de_B
+	NewLine 1
+;SALIDA POR CONSOLA
+	DisplayInteger	b,3
+	NewLine 1
+ET_23:
 	FILD	_1
 	FILD	a
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_42
-ET_12:
+	JBE	ET_65
+ET_29:
 	FILD	_1
 	FILD	b
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_34
-	FILD	_2
-	FILD	b
-	FCOMP
-	FSTSW	AX
-	FWAIT
-	SAHF
-	JNE	ET_26
-;ASIGNACION ENTERA
-	FILD	_NEG_525
-	FISTP	b
-ET_26:
+	JBE	ET_57
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	b
@@ -74,8 +110,28 @@ ET_26:
 ;ASIGNACION ENTERA
 	FILD	auxE0
 	FISTP	b
-	JMP	ET_12
-ET_34:
+;SALIDA POR CONSOLA
+	DisplayInteger	b,3
+	NewLine 1
+	FILD	_2
+	FILD	b
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JNE	ET_54
+;SALIDA POR CONSOLA
+	DisplayString	_T_Dentro_del_if_b_vale
+	NewLine 1
+;SALIDA POR CONSOLA
+	DisplayInteger	b,3
+	NewLine 1
+;ASIGNACION ENTERA
+	FILD	_NEG_525
+	FISTP	b
+ET_54:
+	JMP	ET_29
+ET_57:
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	a
@@ -84,13 +140,24 @@ ET_34:
 ;ASIGNACION ENTERA
 	FILD	auxE1
 	FISTP	a
-	JMP	ET_6
-ET_42:
+	JMP	ET_23
+ET_65:
 ;SALIDA POR CONSOLA
-	DisplayString	_T_RESULTADO_DE_B
+	DisplayString	_T_Resultado_final_de_B
 	NewLine 1
 ;SALIDA POR CONSOLA
 	DisplayInteger	b,3
+	NewLine 1
+;RESTA DE REALES
+	FLD	_3_25
+	FLD	_5_75
+	FSUBR
+	FSTP	auxR0
+;ASIGNACION FLOAT
+	FLD	auxR0
+	FSTP	f
+;SALIDA POR CONSOLA
+	DisplayFloat	f,3
 	NewLine 1
 
 MOV	AX, 4C00H

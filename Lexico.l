@@ -35,13 +35,12 @@ int contVar = 0;
 int comentarioAnidado = 0;
 
 int yyparse();
-int validarEntero(char* str);
-int validarFlotante(char* str);
-int validarCadena(char* str);
-void agregarATablaDeSimbolos(char* str, int esConstante, int esTipo);
+int validarEntero(char*);
+int validarFlotante(char*);
+int validarCadena(char*);
+void agregarATablaDeSimbolos(char*, int, int);
 void mostrarTablaDeSimbolos();
 int crearTablaDeSimbolos();
-char * reemplazarCaracter(char const * const original,  char const * const pattern,  char const * const replacement);
 
 %}
 
@@ -172,8 +171,8 @@ COMMENT_CL              "+#"
 
 int validarEntero(char* posibleLexema)
 {
-    int aux = atoi(posibleLexema);
-    if(aux >= LIMITE_INFERIOR_ENTERO && aux <= LIMITE_SUPERIOR_ENTERO)
+    int posibleLexemaEntero = atoi(posibleLexema);
+    if(posibleLexemaEntero >= LIMITE_INFERIOR_ENTERO && posibleLexemaEntero <= LIMITE_SUPERIOR_ENTERO)
     {
         return 1;            
     }
@@ -185,9 +184,9 @@ int validarEntero(char* posibleLexema)
 
 int validarFlotante(char* posibleLexema)
 {
-    float aux = atof(posibleLexema);
-    printf("AUX: %f", aux);
-    if(aux >= LIMITE_INFERIOR_FLOTANTE && aux <= LIMITE_SUPERIOR_FLOTANTE)
+    float posibleLexemaFlotante = atof(posibleLexema);
+    printf("AUX: %f", posibleLexemaFlotante);
+    if(posibleLexemaFlotante >= LIMITE_INFERIOR_FLOTANTE && posibleLexemaFlotante <= LIMITE_SUPERIOR_FLOTANTE)
     {
         return 1;            
     }
@@ -307,34 +306,4 @@ int buscarEnTablaDeSimbolos (char* nombre)
         }
 	}
 	return -1;
-}
-
-char* reemplazarCaracter (char const* const original,  char const* const pattern,  char const* const replacement)
-{
-	size_t const replen = strlen(replacement);
-	size_t const patlen = strlen(pattern);
-	size_t const orilen = strlen(original);
-	size_t patcnt = 0;
-	const char* oriptr;
-	const char* patloc;
-	for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
-	{
-		patcnt++;
-	}
-	size_t const retlen = orilen + patcnt * (replen - patlen);
-    char * const returned = (char *) malloc( sizeof(char) * (retlen + 1) );
-    if (returned != NULL)
-    {
-		char * retptr = returned;
-		for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
-		{
-			size_t const skplen = patloc - oriptr;
-			strncpy(retptr, oriptr, skplen);
-			retptr += skplen;
-			strncpy(retptr, replacement, replen);
-			retptr += replen;
-		}
-		strcpy(retptr, oriptr);
-	}
-	return returned;
 }

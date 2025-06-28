@@ -1,0 +1,39 @@
+INIT
+{
+   a,b,c,d:Int
+   e,h:String
+   f,g:Float
+}
+
+WRITE("Slice and Concat");
+e = sliceAndConcat(3, 6, "amarillo", "verde", FALSE);
+WRITE(e);
+
+WRITE("Sum First Primes");
+a = sumFirstPrimes(5);
+WRITE(a);
+
+WRITE("Sentencias de Control anidadas");
+b = 5;
+WRITE("Resultado inicial de B");
+WRITE(b);
+while (a > 1)
+{
+   while (b > 1)
+   {
+      b := b - 1;
+      WRITE(b);
+      if (b == 2) 
+      {
+         WRITE("Dentro del if b vale");
+         WRITE(b);
+         b = -525;
+      }
+   }
+   a = a - 1;
+}
+WRITE("Resultado final de B");
+WRITE(b);
+
+f = 5.75 - 3.25;
+WRITE(f);

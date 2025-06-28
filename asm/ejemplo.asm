@@ -1,98 +1,83 @@
-INCLUDE macros2.asm
-INCLUDE number.asm
+include macros2.asm
+include number.asm
 
-.MODEL LARGE
+.MODEL  LARGE
 .386
 .STACK 200h
 
-TRUE		EQU		1
-FALSE		EQU		0
-MAXTEXTSIZE	EQU		320
+MAXTEXTSIZE equ 50
 
 .DATA
-	a		dd		?
-	b		dd		?
-	c		dd		?
-	d		dd		?
-	e		db		MAXTEXTSIZE dup (?), '$'
-	h		db		MAXTEXTSIZE dup (?), '$'
-	f		dd		?
-	g		dd		?
-	_3		dd		3
-	_5		dd		5
-	_1		dd		1
-	_2		dd		2
-	_NEG_525		dd		-525
-	_T_RESULTADO_DE_B		db		"RESULTADO DE B", '$', 304 dup (?)
-	auxR0	DD	0.0
-	auxR1	DD	0.0
-	auxE0	DW	0
-	auxE1	DW	0
+
+    _n1         dd  ?
+    _n2         dd  ?
+    T_Ingrese_un_numero         db  "Ingrese un numero",'$', 33 dup (?)
+    T_Ingrese_otro_numero           db  "Ingrese otro numero",'$', 31 dup (?)
+    T_El_primer_numero_ingresado_es_mayor_al_segundo            db  "El primer numero ingresado es mayor al segundo",'$', 4 dup (?)
+    T_El_primer_numero_ingresado_es_menor_al_segundo            db  "El primer numero ingresado es menor al segundo",'$', 4 dup (?)
+    T_Los_numeros_son_iguales           db  "Los numeros son iguales",'$', 27 dup (?)
+    _aux            db  MAXTEXTSIZE dup (?),'$'
+    _msgPRESIONE            db  0DH,0AH,"Presione una tecla para continuar...",'$'
+    _NEWLINE            db  0DH,0AH,'$'
 
 .CODE
-.startup
-	MOV AX,@DATA
-	MOV DS,AX
-;ASIGNACION ENTERA
-	FILD	_3
-	FISTP	a
-;ASIGNACION ENTERA
-	FILD	_5
-	FISTP	b
-ET_6:
-	FILD	_1
-	FILD	a
-	FCOMP
-	FSTSW	AX
-	FWAIT
-	SAHF
-	JBE	ET_42
-ET_12:
-	FILD	_1
-	FILD	b
-	FCOMP
-	FSTSW	AX
-	FWAIT
-	SAHF
-	JBE	ET_34
-	FILD	_2
-	FILD	b
-	FCOMP
-	FSTSW	AX
-	FWAIT
-	SAHF
-	JNE	ET_26
-;ASIGNACION ENTERA
-	FILD	_NEG_525
-	FISTP	b
-ET_26:
-;RESTA DE ENTEROS
-	FILD	_1
-	FILD	b
-	FSUBR
-	FISTP	auxE0
-;ASIGNACION ENTERA
-	FILD	auxE0
-	FISTP	b
-	JMP	ET_12
-ET_34:
-;RESTA DE ENTEROS
-	FILD	_1
-	FILD	a
-	FSUBR
-	FISTP	auxE1
-;ASIGNACION ENTERA
-	FILD	auxE1
-	FISTP	a
-	JMP	ET_6
-ET_42:
-;SALIDA POR CONSOLA
-	DisplayString	_T_RESULTADO_DE_B
-	NewLine 1
-;SALIDA POR CONSOLA
-	DisplayInteger	b,3
-	NewLine 1
 
-MOV	AX, 4C00H
-INT	21H
-END
+START:
+    mov AX,@DATA
+    mov DS,AX
+    mov es,ax
+    mov dx,OFFSET T_Ingrese_un_numero
+    mov ah,9
+    int 21h
+    newLine 1
+    GetFloat _n1
+    mov dx,OFFSET T_Ingrese_otro_numero
+    mov ah,9
+    int 21h
+    newLine 1
+    GetFloat _n2
+    fld _n1
+    fld _n2
+    fxch
+    fcomp
+    fstsw ax
+    ffree st(0)
+    sahf
+    JBE ET_12
+    mov dx,OFFSET T_El_primer_numero_ingresado_es_mayor_al_segundo
+    mov ah,9
+    int 21h
+    newLine 1
+    JMP ET_18
+ET_12:
+    fld _n1
+    fld _n2
+    fxch
+    fcomp
+    fstsw ax
+    ffree st(0)
+    sahf
+    JAE ET_22
+    mov dx,OFFSET T_El_primer_numero_ingresado_es_menor_al_segundo
+    mov ah,9
+    int 21h
+    newLine 1
+    JMP ET_28
+ET_22:
+    mov dx,OFFSET T_Los_numeros_son_iguales
+    mov ah,9
+    int 21h
+    newLine 1
+ET_28:
+ET_18:
+    mov dx,OFFSET _NEWLINE
+    mov ah,09
+    int 21h
+    mov dx,OFFSET _msgPRESIONE
+    mov ah,09
+    int 21h
+    mov ah, 1
+    int 21h
+    mov ax, 4C00h
+    int 21h
+END START

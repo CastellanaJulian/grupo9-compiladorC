@@ -4,7 +4,7 @@ bison -dyv Sintactico.y
 
 gcc.exe lex.yy.c y.tab.c Pila.c Polaca.c -o lyc-compiler-3.0.0.exe
 
-lyc-compiler-3.0.0.exe prueba.txt
+lyc-compiler-3.0.0.exe test.txt
 
 @echo off
 del lyc-compiler-3.0.0.exe

@@ -7,9 +7,21 @@
        h	|	        	|	  String	|	       0
        f	|	        	|	   Float	|	       0
        g	|	        	|	   Float	|	       0
+_"Slice and Concat"	|	"Slice and Concat"	|	 CTE_STR	|	      18
       _3	|	       3	|	 CTE_INT	|	       0
+      _6	|	       6	|	 CTE_INT	|	       0
+_"amarillo"	|	"amarillo"	|	 CTE_STR	|	      10
+_"verde"	|	 "verde"	|	 CTE_STR	|	       7
+_"verderill"	|	"verderill"	|	 CTE_STR	|	      11
+_"Sum First Primes"	|	"Sum First Primes"	|	 CTE_STR	|	      18
       _5	|	       5	|	 CTE_INT	|	       0
+     _28	|	      28	|	 CTE_INT	|	       0
+_"Sentencias de Control anidadas"	|	"Sentencias de Control anidadas"	|	 CTE_STR	|	      32
+_"Resultado inicial de B"	|	"Resultado inicial de B"	|	 CTE_STR	|	      24
       _1	|	       1	|	 CTE_INT	|	       0
       _2	|	       2	|	 CTE_INT	|	       0
+_"Dentro del if b vale"	|	"Dentro del if b vale"	|	 CTE_STR	|	      22
    _-525	|	    -525	|	 CTE_INT	|	       0
-_"RESULTADO DE B"	|	"RESULTADO DE B"	|	 CTE_STR	|	      16
+_"Resultado final de B"	|	"Resultado final de B"	|	 CTE_STR	|	      22
+   _5.75	|	    5.75	|	CTE_FLOAT	|	       0
+   _3.25	|	    3.25	|	CTE_FLOAT	|	       0

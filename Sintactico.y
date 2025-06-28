@@ -73,8 +73,7 @@ typedef struct
 extern int crearTablaDeSimbolos();
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
-extern char* reemplazarCaracter(char const *, char const *, char const *);
-extern void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo);
+extern void agregarATablaDeSimbolos(char*, int, int);
 extern TablaDeSimbolos tablaDeSimbolos[REGISTROS_MAXIMO];
 extern char* yytext;
 extern int yylineno;
@@ -86,8 +85,8 @@ extern FILE  *yyin;
 int yyerror();
 int yylex();
 bool esPrimo (int);
-void removeQuotes(char *);
-char* addQuotes(char *);
+void eliminarComillas (char*);
+char* agregarComillas (char*);
 char* sliceAndConcat(int, int, char *, char *, bool);
 void generarAssembler(Polaca*);
 void generarCabeceraAssembler(FILE*);
@@ -96,7 +95,9 @@ void declararVariablesEnAssembler();
 void generarComienzoDePrograma(FILE*);
 void manejarVariables(char*, char*, int*);
 void manejarConstantes(char*, char*, int*);
+void manejarEtiqueta(char*, FILE*);
 void manejarOperacionArimetica(const char*, FILE*, char*, char*, int*, int*);
+char* reemplazarCaracter(char const *, char const *, char const *);
 void manejarComparador(const char*, FILE*, int*);
 void manejarAsignacion(const char*, FILE*, int*, int*);
 void manejarComandoRead(char*, FILE*, const char*);
@@ -127,7 +128,8 @@ int auxiliaresNecesarios = 0;
 
 %}
 
-%union {
+%union
+{
 	int vali;
 	double valf;
 	char*vals;
@@ -481,10 +483,10 @@ sum_first_primes:
 				yyerrormsg("El valor resultante supera la cota de enteros");         
 			}
 		}
-		char aux[50];
-		snprintf(aux, sizeof(aux), "%d", suma);
-		ponerEnPolaca(&polaca, aux);
-		agregarATablaDeSimbolos(aux, 1, 0);
+		char resultadoSumFirstPrimes[50];
+		snprintf(resultadoSumFirstPrimes, sizeof(resultadoSumFirstPrimes), "%d", suma);
+		ponerEnPolaca(&polaca, resultadoSumFirstPrimes);
+		agregarATablaDeSimbolos(resultadoSumFirstPrimes, 1, 0);
 	}
 	PC
 	{
@@ -582,22 +584,22 @@ while:
 	} 
 	PA condicion PC bloque_ejecucion	
 	{
-		char aux[20];
-		sprintf(aux, "%d", topeDePila(&pilaWhile)->saltoElse);
+		char salto[20];
+		sprintf(salto, "%d", topeDePila(&pilaWhile)->saltoElse);
 		ponerEnPolaca(&polaca, BI);
-		ponerEnPolaca(&polaca, aux);
-		sprintf(aux, "%d", contadorPolaca);
+		ponerEnPolaca(&polaca, salto);
+		sprintf(salto, "%d", contadorPolaca);
 		switch (topeDePila(&pilaWhile)->andOr)
 		{
 			case condicionSimple:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, salto);
 				break;
 			case and:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, salto);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, salto);
 				break;
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, salto);
 				break;
 		}
 		sacarDePila(&pilaWhile);
@@ -708,9 +710,9 @@ condicion:
 					topeDePila(&pilaIf)->salto2 = contadorPolaca;
 					ponerEnPolaca(&polaca, VACIO);
 					if(topeDePila(&pilaIf)->andOr == or){
-						char aux[20];
-						sprintf(aux, "%d", contadorPolaca);
-						ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+						char salto[20];
+						sprintf(salto, "%d", contadorPolaca);
+						ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 					}
 					break;
 
@@ -721,9 +723,9 @@ condicion:
 					ponerEnPolaca(&polaca, VACIO);
 					if(topeDePila(&pilaWhile)->andOr == or)
 					{
-						char aux[20];
-						sprintf(aux, "%d", contadorPolaca);
-						ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
+						char salto[20];
+						sprintf(salto, "%d", contadorPolaca);
+						ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, salto);
 					}
 					break;
 			}
@@ -750,35 +752,35 @@ if:
 else:
 	ELSE
 	{
-		char aux[20];
-		sprintf(aux, "%d", contadorPolaca);
+		char salto[20];
+		sprintf(salto, "%d", contadorPolaca);
 		switch (topeDePila(&pilaIf)->andOr)
 		{
 			case condicionSimple:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				break;
 			case and:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 				break;
 		}
-		char aux2[CADENA_MAXIMA];
-		strcpy(aux2, "#");
-		strcat(aux2, aux);
-		ponerEnPolaca(&polaca, aux2);
+		char etiqueta[CADENA_MAXIMA];
+		strcpy(etiqueta, "#");
+		strcat(etiqueta, salto);
+		ponerEnPolaca(&polaca, etiqueta);
 	}
 	bloque_ejecucion
 	{
-		char aux[20];
-		sprintf(aux, "%d", contadorPolaca);
-		ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->saltoElse, aux);
-		char aux2[20];
-		strcpy(aux2, "#");
-		strcat(aux2, aux);
-		ponerEnPolaca(&polaca, aux2);
+		char salto[20];
+		sprintf(salto, "%d", contadorPolaca);
+		ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->saltoElse, salto);
+		char etiqueta[20];
+		strcpy(etiqueta, "#");
+		strcat(etiqueta, salto);
+		ponerEnPolaca(&polaca, etiqueta);
 	}
 	;
 
@@ -787,36 +789,36 @@ bloque_ejecucion: LLA resto_programa LLC ;
 resto: 
 	bloque_ejecucion
 	{
-		char aux[20];
-		sprintf(aux, "%d", contadorPolaca);
+		char salto[20];
+		sprintf(salto, "%d", contadorPolaca);
 		switch (topeDePila(&pilaIf)->andOr)
 		{
 			case condicionSimple:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				break;
 			case and:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, aux);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
+				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 				break;
 		}
-		char aux2[20];
-		strcpy(aux2, "#");
-		strcat(aux2, aux);
-		ponerEnPolaca(&polaca, aux2);
+		char etiqueta[20];
+		strcpy(etiqueta, "#");
+		strcat(etiqueta, salto);
+		ponerEnPolaca(&polaca, etiqueta);
 	}
 	| bloque_ejecucion
 	{
-		char aux[20];
+		char salto[20];
 		ponerEnPolaca(&polaca, BI);
 		topeDePila(&pilaIf)->saltoElse = contadorPolaca;
 		ponerEnPolaca(&polaca, VACIO);
 		if(topeDePila(&pilaIf)->andOr != or)
 		{
-			sprintf(aux, "%d", contadorPolaca);
-			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, aux);
+			sprintf(salto, "%d", contadorPolaca);
+			ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 		}
 	}
 	else
@@ -945,23 +947,16 @@ void generarCabeceraAssembler(FILE* pf)
 	fprintf(pf, ".DATA\n");
 }
 
-void obtenerNombreAssembler(const char *lex, const char *tipo, char *nombreAsm)
+void obtenerNombreAssembler(const char *lexema, const char *tipo, char *nombreAssembler)
 {
     char tmp[64];
     if (strcmp(tipo, TIPO_INT) == 0 || strcmp(tipo, TIPO_FLOAT) == 0 || strcmp(tipo, TIPO_STRING) == 0)
     {
-        if (lex[0] == '_')
-		{
-            strcpy(nombreAsm, lex + 1);
-		}
-        else
-		{
-            strcpy(nombreAsm, lex);
-		}
+		strcpy(nombreAssembler, lexema[0] == '_' ? lexema + 1 : lexema);
     }
     else if (strcmp(tipo, CONSTANTE_INT) == 0)
     {
-		const char *start = lex;
+		const char *start = lexema;
 		if (*start == '_')
 		{
 			start++;
@@ -969,21 +964,21 @@ void obtenerNombreAssembler(const char *lex, const char *tipo, char *nombreAsm)
 		if(*start == '-')
 		{
 			start++;
-			snprintf(nombreAsm, 64, "_NEG_%s", start);
+			snprintf(nombreAssembler, 64, "_NEG_%s", start);
 		}
 		else
 		{
-			snprintf(nombreAsm, 64, "_%s", start);
-		}		
+			snprintf(nombreAssembler, 64, "_%s", start);
+		}
     }
     else if (strcmp(tipo, CONSTANTE_FLOAT) == 0)
     {
-		const char *start = lex;
-		if (*start == '_')
+		const char* inicioLexema = lexema;
+		if (*inicioLexema == '_')
 		{
-			start++;
+			inicioLexema++;
 		}
-		strcpy(tmp, start);
+		strcpy(tmp, inicioLexema);
 		for (char *p = tmp; *p; ++p)
 		{
 			if (*p == '.')
@@ -991,32 +986,32 @@ void obtenerNombreAssembler(const char *lex, const char *tipo, char *nombreAsm)
 				*p = '_';
 			}
 		}
-		if(*tmp == '-')
-		{
-			snprintf(nombreAsm, 64, "_NEG_%s", tmp + 1);
-		}
-		else
-		{
-			snprintf(nombreAsm, 64, "_%s", tmp);
-		}
+		snprintf(nombreAssembler, 64, *tmp == '-' ? "_NEG_%s" : "_%s", *tmp == '-' ? tmp + 1 : tmp);
     }
     else if (strcmp(tipo, CONSTANTE_STR) == 0)
     {
-		const char *start = lex;
-		if (*start == '_')
-			start++;
-		if (*start == '"' || *start == '\'')
-			start++;
-		size_t len = strlen(start);
-		if (len > 0 && (start[len-1] == '"' || start[len-1] == '\''))
-			len--;
-		size_t pos = 0;
-		for (size_t i = 0; i < len; ++i) {
-			char c = start[i];
-			tmp[pos++] = (c == ' ' ? '_' : c);
+		const char* inicioLexema = lexema;
+		if (*inicioLexema == '_')
+		{
+			inicioLexema++;
 		}
-		tmp[pos] = '\0';
-		snprintf(nombreAsm, 128, "_T_%s", tmp);
+		if (*inicioLexema == '"' || *inicioLexema == '\'')
+		{
+			inicioLexema++;
+		}
+		int longitud = strlen(inicioLexema);
+		if (longitud > 0 && (inicioLexema[longitud - 1] == '"' || inicioLexema[longitud - 1] == '\''))
+		{
+			longitud--;
+		}
+		int posicion = 0;
+		for (int i = 0; i < longitud; ++i)
+		{
+			char caracter = inicioLexema[i];
+			tmp[posicion++] = (caracter == ' ' ? '_' : caracter);
+		}
+		tmp[posicion] = '\0';
+		snprintf(nombreAssembler, 128, "_T_%s", tmp);
     }
 }
 
@@ -1371,6 +1366,36 @@ void manejarComparador(const char* operacion, FILE* pf, int* huboSalto)
 		fprintf(pf, "\tJMP");
 		*huboSalto = TRUE;
 	}
+}
+
+char* reemplazarCaracter (char const* original,  char const* pattern,  char const* replacement)
+{
+	size_t const replen = strlen(replacement);
+	size_t const patlen = strlen(pattern);
+	size_t const orilen = strlen(original);
+	size_t patcnt = 0;
+	const char* oriptr;
+	const char* patloc;
+	for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
+	{
+		patcnt++;
+	}
+	size_t const retlen = orilen + patcnt * (replen - patlen);
+    char * const returned = (char *) malloc( sizeof(char) * (retlen + 1) );
+    if (returned != NULL)
+    {
+		char * retptr = returned;
+		for (oriptr = original; patloc = strstr(oriptr, pattern); oriptr = patloc + patlen)
+		{
+			size_t const skplen = patloc - oriptr;
+			strncpy(retptr, oriptr, skplen);
+			retptr += skplen;
+			strncpy(retptr, replacement, replen);
+			retptr += replen;
+		}
+		strcpy(retptr, oriptr);
+	}
+	return returned;
 }
 
 void manejarEtiqueta(char* linea, FILE* pf)
