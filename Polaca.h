@@ -3,7 +3,7 @@
 
 #define ERROR -1
 #define OK 3
-#define CADENA_MAXIMA 32
+#define CADENA_MAXIMA 320
 
 #define CMP "CMP"
 #define BEQ "BEQ"

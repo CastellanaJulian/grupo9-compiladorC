@@ -54,50 +54,12 @@ while (a == 1)
       }
    }
 }
+WRITE("RESULTADO DE B");
+WRITE(b);
 
 if (a > b + 3 AND a < 4)
 {
    c := 6;
 }
 
-h := "H";
-
-WRITE (h);
-
-#+ Así son los comentarios de nuestro compilador +#
-
-#+ Error Lexico:  Asignacion de entero fuera de rango +#
-#+ d = 100000000; +#
-
-#+ Error Sintactico +#
-#+ if a + b +#
-
-#+ Test Comentarios +#
-#+sadkj#=!ºasod_-DxD+12130H!"=?)?= +#
-#+ Este es un comentario #+ Este es un comentario anidado +# +#
-#+
-   Este es un comentario multilinea
-   #+ Este es un comentario anidado +#
-   Agregando codigo al comentario
-   if (a > b + 3 AND a < 4)
-   {
-      c := 6;
-   }
-+#
-
-#+ Validaciones Semanticas +#
-
-#+ Asigno una CTE_STR a una variable Int +#
-#+ a := "Hola Mundo"; +#
-
-#+ Asigno una CTE_FLOAT a una variable String +#
-#+ e := 7.25; +#
-
-#+ Asignando una variable que no se encuentra declarada en el INIT +#
-#+ z := 6; +#
-
-#+ Asigno una variable String el valor de retorno de una funcion que devuelve un Int +#
-#+ e = sumFirstPrimes(3); +#
-
-#+ Asignando una variable Int el valor de una variable String +#
-#+ a := e; +#
+WRITE ("FIN DE PROGRAMA");

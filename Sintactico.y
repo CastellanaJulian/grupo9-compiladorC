@@ -36,8 +36,6 @@
 
 #define NOMBRE_ARCHIVO_ASSEMBLER "final.asm"
 
-#include <string.h>
-
 #define ES_STRING(tipo)   (strcmp((tipo), TIPO_STRING) == 0 || strcmp((tipo), CONSTANTE_STR) == 0)
 #define ES_ENTERO(tipo)   (strcmp((tipo), TIPO_INT) == 0 || strcmp((tipo), CONSTANTE_INT) == 0)
 #define ES_FLOAT(tipo)    (strcmp((tipo), TIPO_FLOAT) == 0 || strcmp((tipo), CONSTANTE_FLOAT) == 0)
@@ -76,7 +74,7 @@ extern int crearTablaDeSimbolos();
 extern int yyerrormsg(const char *);
 extern int buscarEnTablaDeSimbolos(char*);
 extern char* reemplazarCaracter(char const *, char const *, char const *);
-
+extern void agregarATablaDeSimbolos(char* lexema, int esConstante, int esTipo);
 extern TablaDeSimbolos tablaDeSimbolos[REGISTROS_MAXIMO];
 extern char* yytext;
 extern int yylineno;
@@ -88,6 +86,9 @@ extern FILE  *yyin;
 int yyerror();
 int yylex();
 bool esPrimo (int);
+void removeQuotes(char *);
+char* addQuotes(char *);
+char* sliceAndConcat(int, int, char *, char *, bool);
 void generarAssembler(Polaca*);
 void generarCabeceraAssembler(FILE*);
 void obtenerNombreAssembler(const char*, const char*, char*);
@@ -281,7 +282,7 @@ expresion:
 			// String e;
 			// e = 2 + "HOLA MUNDO";
 			// e = "HOLA MUNDO" + 2;
-			if( esAsignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
+			if(esAsignacion && strcmp(tipoAsignacion, TIPO_STRING) == 0)
 			{
 				yyerrormsg("Operacion invalida con string");
 			}
@@ -429,7 +430,6 @@ factor:
 		{
             yyerrormsg("Operacion invalida, intenta usar string en operacion logica");
 		}
-		printf("Valor de CTE_STR: %s\n", $<vals>1);
 		ponerEnPolaca(&polaca, tablaDeSimbolos[buscarEnTablaDeSimbolos($<vals>1)].valor);
 		printf("CTE_STR es Expresion\n");
 	}
@@ -465,18 +465,15 @@ sum_first_primes:
 		{
 			yyerrormsg("El valor de SFP no puede ser menor a 1");
 		}
+		int suma = 2;
 		int x = 3;
-		ponerEnPolaca(&polaca, "2");
 		valor--;
 		while(valor != 0)
 		{
 			if(esPrimo(x))
 			{
 				valor--;
-				char aux[50];
-				snprintf(aux, sizeof(aux), "%d", x);
-        		ponerEnPolaca(&polaca, aux);
-				ponerEnPolaca(&polaca, "+");
+				suma += x;
 			}
 			x++;
 			if(x >= LIMITE_SUPERIOR_ENTERO)
@@ -484,6 +481,10 @@ sum_first_primes:
 				yyerrormsg("El valor resultante supera la cota de enteros");         
 			}
 		}
+		char aux[50];
+		snprintf(aux, sizeof(aux), "%d", suma);
+		ponerEnPolaca(&polaca, aux);
+		agregarATablaDeSimbolos(aux, 1, 0);
 	}
 	PC
 	{
@@ -502,26 +503,14 @@ slice_and_concat:
 
 	COMA BOOL PC
 	{
-		if(!strcmp("FALSE",$<vals>11))
-		{
-			ponerEnPolaca(&polaca, $<vals>7);
-			ponerEnPolaca(&polaca, $<vals>3);
-			ponerEnPolaca(&polaca, "CUTL");
-			ponerEnPolaca(&polaca, $<vals>5);
-			ponerEnPolaca(&polaca, "CUTU");
-			ponerEnPolaca(&polaca, $<vals>9);
-			ponerEnPolaca(&polaca, "CONCAT");
-		}
-		if(!strcmp("TRUE",$<vals>11))
-		{
-			ponerEnPolaca(&polaca, $<vals>9);
-			ponerEnPolaca(&polaca, $<vals>3);
-			ponerEnPolaca(&polaca, "CUTL");
-			ponerEnPolaca(&polaca, $<vals>5);
-			ponerEnPolaca(&polaca, "CUTU");
-			ponerEnPolaca(&polaca, $<vals>7);
-			ponerEnPolaca(&polaca, "CONCAT");
-		}
+		int limiteInicial = atoi($<vals>3);
+		int limiteFinal = atoi($<vals>5);
+		char* palabra1 = $<vals>7;
+		char* palabra2 = $<vals>9;
+		bool concatenarEnPalabra1 = strcmp("TRUE", $<vals>11) == 0;
+		char* resultado = sliceAndConcat(limiteInicial, limiteFinal, palabra1, palabra2, concatenarEnPalabra1);
+		ponerEnPolaca(&polaca, resultado);
+		agregarATablaDeSimbolos(resultado, 1, 0);
 		printf("\tSAC(expresion,expresion,expresion,expresion,BOOL) es sliceAndConcat\n");
 	}
 ;
@@ -535,7 +524,6 @@ write:
 	PC OP_ENDLINE
 	| WRITE PA ID
 	{
-		printf("VALOR: %d\n", $<vals>3);
 		int posicion = buscarEnTablaDeSimbolos($<vals>3);
         if (strcmp(tablaDeSimbolos[posicion].tipo, VACIO) == 0)
         {
@@ -585,7 +573,12 @@ while:
 		info.saltoElse = contadorPolaca;
 		ponerEnPila(&pilaWhile, &info);
 		tipoCondicion = condicionWhile;
-		ponerEnPolaca(&polaca, ET);
+		char etiqueta[20];
+		strcpy(etiqueta, "#");
+		char tmp[12];
+		itoa(contadorPolaca, tmp, 10);
+		strcat(etiqueta, tmp); 
+		ponerEnPolaca(&polaca, etiqueta);
 	} 
 	PA condicion PC bloque_ejecucion	
 	{
@@ -602,19 +595,18 @@ while:
 			case and:
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
+				break;
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, aux);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto2, aux);
 				break;
 		}
-		char etiquetaInicio[20];
-		strcpy(etiquetaInicio, "#");
-		strcat(etiquetaInicio, aux);
-		ponerEnPolaca(&polaca, etiquetaInicio);
-		char etiquetaFin[20];
-		sprintf(etiquetaFin, "#%d", topeDePila(&pilaWhile)->saltoElse);
-		printf("ETIQUETA FIN: %s", etiquetaFin);
-		ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->saltoElse, etiquetaFin);
+		sacarDePila(&pilaWhile);
+		char etiqueta[20];
+		strcpy(etiqueta, "#");
+		char tmp[12];
+		itoa(contadorPolaca, tmp, 10);
+		strcat(etiqueta, tmp); 
+		ponerEnPolaca(&polaca, etiqueta);
 	}
 ;
 
@@ -864,6 +856,77 @@ bool esPrimo (int numero)
 	return numero > 1;
 }
 
+void eliminarComillas (char* cadena)
+{
+    char *origen = cadena, *destino = cadena;
+    while (*origen)
+	{
+        if (*origen != '"')
+		{
+            *destino++ = *origen;
+        }
+        origen++;
+    }
+    *destino = '\0';
+}
+
+char* agregarComillas (char* cadena)
+{
+    int longitud = strlen(cadena);
+    char* resultado = (char*)malloc((longitud + 3) * sizeof(char));
+    if (!resultado)
+	{
+        fprintf(stderr, "Error de memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    resultado[0] = '"';
+    memcpy(resultado + 1, cadena, longitud);
+    resultado[longitud + 1] = '"';
+    resultado[longitud + 2] = '\0';
+    return resultado;
+}
+
+char* sliceAndConcat (int limiteInicial, int limiteFinal, char *palabra1, char *palabra2,  bool concatenarEnPalabra1)
+{
+	if(limiteInicial < 0 || limiteFinal < 0)
+	{
+		yyerrormsg("Los limites deben ser mayores o iguales a 0");
+	}
+	if(limiteInicial > limiteFinal)
+	{
+		yyerrormsg("El limite inicial debe ser menor al limite final");
+	}
+	if(limiteFinal >= strlen(!concatenarEnPalabra1? palabra1 : palabra2) - 2)
+	{
+		yyerrormsg("Los limites deben estar dentro del rango de la cadena");
+	}
+	if(limiteFinal - limiteInicial + strlen(concatenarEnPalabra1? palabra1 : palabra2) >= CADENA_MAXIMA)
+	{
+		yyerrormsg("La longitud de la cadena resultante supera el limite de caracteres");
+	}
+	eliminarComillas(palabra1);
+	eliminarComillas(palabra2);
+	char* resultado = (char*)malloc(CADENA_MAXIMA * sizeof(char));
+	strcpy(resultado, concatenarEnPalabra1 ? palabra1 : palabra2);
+	const char* origen = concatenarEnPalabra1 ? palabra2 : palabra1;
+	char * inicioResultado = resultado;
+	while(*resultado != '\0')
+	{
+		resultado++;
+	}
+	origen += limiteInicial;
+	limiteFinal -= limiteInicial;
+	while(limiteFinal >= 0)
+	{
+		*resultado = *origen;
+		resultado++;
+		origen++;
+		limiteFinal--;
+	}
+	*resultado = '\0';
+	return agregarComillas(inicioResultado);
+}
+
 /******************* Funciones Assembler *******************/
 
 void generarCabeceraAssembler(FILE* pf)
@@ -902,7 +965,6 @@ void obtenerNombreAssembler(const char *lex, const char *tipo, char *nombreAsm)
 		if (*start == '_')
 		{
 			start++;
-			
 		}
 		if(*start == '-')
 		{
@@ -937,7 +999,6 @@ void obtenerNombreAssembler(const char *lex, const char *tipo, char *nombreAsm)
 		{
 			snprintf(nombreAsm, 64, "_%s", tmp);
 		}
-		//snprintf(nombreAsm, 64, "_%s", tmp);
     }
     else if (strcmp(tipo, CONSTANTE_STR) == 0)
     {
@@ -969,7 +1030,6 @@ void declararVariablesEnAssembler(FILE* pf)
         const char *lexema  = tablaDeSimbolos[i].lexema;
         const char *tipoDeDato = tablaDeSimbolos[i].tipo;
         const char *valor  = tablaDeSimbolos[i].valor;
-
         obtenerNombreAssembler(lexema, tipoDeDato, nombreAssembler);
 
 		// INTEGER
@@ -977,9 +1037,9 @@ void declararVariablesEnAssembler(FILE* pf)
 		{
 			fprintf(pf, "\t%s\t\tdd\t\t?\n", nombreAssembler);
 		}
-
+		
 		// CTE_INT
-		if(strcmp(tipoDeDato, CONSTANTE_INT) == 0 && atoi(valor))
+		if(strcmp(tipoDeDato, CONSTANTE_INT) == 0)
 		{
 			fprintf(pf, "\t%s\t\tdd\t\t%s\n", nombreAssembler, valor);
 		}
@@ -1043,8 +1103,6 @@ void manejarVariables(char* linea, char* ultimoTipo, int* huboAsignacion)
 		strcpy(informacion.cadena, linea);
 		informacion.tipoDeDato = tablaDeSimbolos[posicion].tipo;
 		*huboAsignacion = pilaASM || *huboAsignacion == FALSE ? TRUE : FALSE;
-		printf("CADENA VARIABLES: %s\n", informacion.cadena);
-		printf("TIPO DE DATO VARIABLES: %s\n", informacion.tipoDeDato);
 		ponerEnPila(&pilaASM, &informacion);
 		strcpy(ultimoTipo, informacion.tipoDeDato);
 	}
@@ -1060,8 +1118,6 @@ void manejarConstantes(char* linea, char* ultimoTipo, int* huboAsignacion)
 		informacion.tipoDeDato = (char*)malloc(sizeof(char)*CADENA_MAXIMA);
 		strcpy(informacion.cadena, linea);
 		informacion.tipoDeDato = tablaDeSimbolos[posicion].tipo;
-		printf("CADENA CONSTANTE: %s\n", informacion.cadena);
-		printf("TIPO DE DATO CONSTANTE: %s\n", informacion.tipoDeDato);
 		ponerEnPila(&pilaASM, &informacion);
 		if(!pilaASM && (strcmp(informacion.tipoDeDato, TIPO_STRING) != 0 || strcmp(informacion.tipoDeDato, CONSTANTE_STR) == 0))
 		{
@@ -1260,7 +1316,6 @@ void manejarComparador(const char* operacion, FILE* pf, int* huboSalto)
 
 	if(*huboSalto == TRUE)
 	{
-		printf("ETIQUETA DE SALTO CON OPERADION: %s\n", operacion);
 		fprintf(pf, "\tET_%s\n", operacion);
 		*huboSalto = FALSE;
 	}
@@ -1335,8 +1390,6 @@ void manejarAsignacion(const char* operacion, FILE* pf, int* huboAsignacion, int
 		Informacion* operando2 = sacarDePila(&pilaASM);
 		obtenerNombreAssembler(operando1->cadena, operando1->tipoDeDato, nombreOperando1);
 		obtenerNombreAssembler(operando2->cadena, operando2->tipoDeDato, nombreOperando2);
-		printf("OPERANDO 1: %s\n", nombreOperando1);
-		printf("OPERANDO 2: %s\n", nombreOperando2);
 		if (ES_STRING(operando2->tipoDeDato))
 		{
 			fprintf(pf, ";ASIGNACION CADENA\n");

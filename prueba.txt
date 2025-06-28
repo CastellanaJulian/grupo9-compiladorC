@@ -5,11 +5,21 @@ INIT
    f,g:Float
 }
 
-a = 10;
-e = "FIN PROGRAMA";
-WHILE (a != 1)
+a = 3;
+b = 5;
+
+while (a > 1)
 {
+   while (b > 1)
+   {
+      if (b == 2) 
+      {
+         b = -525;
+      }
+	  b := b - 1;
+   }
    a = a - 1;
-   WRITE(a);
 }
-WRITE(e);
+
+WRITE("RESULTADO DE B");
+WRITE(b);

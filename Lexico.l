@@ -10,7 +10,7 @@
 #define LIMITE_INFERIOR_ENTERO -65535
 #define LIMITE_SUPERIOR_FLOTANTE 3.4028235e+38
 #define LIMITE_INFERIOR_FLOTANTE -3.4028235e+38
-#define LIMITE_CADENA 32
+#define LIMITE_CADENA 320
 
 #define SALIDA_EXITOSA 0
 #define ERROR_ARCHIVO 1
@@ -42,7 +42,6 @@ void agregarATablaDeSimbolos(char* str, int esConstante, int esTipo);
 void mostrarTablaDeSimbolos();
 int crearTablaDeSimbolos();
 char * reemplazarCaracter(char const * const original,  char const * const pattern,  char const * const replacement);
-char* normalizar(char* cad);
 
 %}
 
@@ -296,7 +295,6 @@ int crearTablaDeSimbolos()
 int buscarEnTablaDeSimbolos (char* nombre)
 {
 	int i;
-    //strcpy(nombre, normalizar(nombre));
 	for(i = 0; i < REGISTROS_MAXIMO; i++)
     {
         if(strcmp(tablaDeSimbolos[i].lexema, nombre) == 0)
@@ -339,13 +337,4 @@ char* reemplazarCaracter (char const* const original,  char const* const pattern
 		strcpy(retptr, oriptr);
 	}
 	return returned;
-}
-
-char* normalizar(char* cad)
-{
-    char *auxCad = (char *) malloc( sizeof(char) * (strlen(cad)) + 2);
-    strcpy(auxCad,reemplazarCaracter(cad, ".", "p"));
-    strcpy(auxCad,reemplazarCaracter(auxCad, "\"", ""));
-    strcpy(auxCad,reemplazarCaracter(auxCad, " ", "_"));
-    return auxCad;
 }
