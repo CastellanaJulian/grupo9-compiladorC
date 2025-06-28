@@ -1,4 +1,4 @@
-PATH=C:\TASM;
+PATH=C:\asm\TASM;
 
 tasm numbers.asm
 tasm final.asm
