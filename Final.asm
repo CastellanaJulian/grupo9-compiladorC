@@ -29,6 +29,7 @@ MAXTEXTSIZE	EQU		320
 	_28		dd		28
 	_T_Sentencias_de_Control_anidadas		db		"Sentencias de Control anidadas", '$', 288 dup (?)
 	_T_Resultado_inicial_de_B		db		"Resultado inicial de B", '$', 296 dup (?)
+	_4		dd		4
 	_1		dd		1
 	_2		dd		2
 	_T_Dentro_del_if_b_vale		db		"Dentro del if b vale", '$', 298 dup (?)
@@ -86,22 +87,54 @@ COPIA_CADENA_0:
 ;SALIDA POR CONSOLA
 	DisplayInteger	b,3
 	NewLine 1
-ET_23:
+	FILD	_5
+	FILD	a
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JE	ET_33
+	FILD	_6
+	FILD	a
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JNE	ET_39
+ET_33:
+;ASIGNACION ENTERA
+	FILD	_4
+	FISTP	a
+	JMP	ET_43
+ET_39:
+;ASIGNACION ENTERA
+	FILD	_3
+	FISTP	a
+ET_43:
+ET_44:
 	FILD	_1
 	FILD	a
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_65
-ET_29:
+	JA	ET_55
+	FILD	_5
+	FILD	a
+	FCOMP
+	FSTSW	AX
+	FWAIT
+	SAHF
+	JAE	ET_92
+ET_55:
+ET_56:
 	FILD	_1
 	FILD	b
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_57
+	JBE	ET_84
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	b
@@ -119,7 +152,7 @@ ET_29:
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JNE	ET_54
+	JNE	ET_81
 ;SALIDA POR CONSOLA
 	DisplayString	_T_Dentro_del_if_b_vale
 	NewLine 1
@@ -129,9 +162,9 @@ ET_29:
 ;ASIGNACION ENTERA
 	FILD	_NEG_525
 	FISTP	b
-ET_54:
-	JMP	ET_29
-ET_57:
+ET_81:
+	JMP	ET_56
+ET_84:
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	a
@@ -140,8 +173,8 @@ ET_57:
 ;ASIGNACION ENTERA
 	FILD	auxE1
 	FISTP	a
-	JMP	ET_23
-ET_65:
+	JMP	ET_44
+ET_92:
 ;SALIDA POR CONSOLA
 	DisplayString	_T_Resultado_final_de_B
 	NewLine 1

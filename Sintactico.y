@@ -712,7 +712,11 @@ condicion:
 					if(topeDePila(&pilaIf)->andOr == or){
 						char salto[20];
 						sprintf(salto, "%d", contadorPolaca);
-						ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
+						ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto); 
+						char etiqueta[20];
+						strcpy(etiqueta, "#");
+						strcat(etiqueta, salto);
+						ponerEnPolaca(&polaca, etiqueta);
 					}
 					break;
 
@@ -726,6 +730,11 @@ condicion:
 						char salto[20];
 						sprintf(salto, "%d", contadorPolaca);
 						ponerEnPolacaNro(&polaca, topeDePila(&pilaWhile)->salto1, salto);
+						
+						char etiqueta[20];
+						strcpy(etiqueta, "#");
+						strcat(etiqueta, salto);
+						ponerEnPolaca(&polaca, etiqueta);
 					}
 					break;
 			}
@@ -763,7 +772,6 @@ else:
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 				break;
 		}
@@ -800,7 +808,6 @@ resto:
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 			case or:
-				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto1, salto);
 				ponerEnPolacaNro(&polaca, topeDePila(&pilaIf)->salto2, salto);
 				break;
 		}

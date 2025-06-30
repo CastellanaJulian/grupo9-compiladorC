@@ -17,7 +17,17 @@ WRITE("Sentencias de Control anidadas");
 b = 5;
 WRITE("Resultado inicial de B");
 WRITE(b);
-while (a > 1)
+if(a==5 OR a==6)
+{
+   a=4;
+
+}
+else
+{
+   a=3;
+
+}
+while (a > 1 or a<5)
 {
    while (b > 1)
    {
