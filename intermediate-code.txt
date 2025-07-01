@@ -1,7 +1,7 @@
 "Slice and Concat"
 WRITE
 e
-"verderill"
+"verdeand"
 =
 e
 WRITE
@@ -46,20 +46,14 @@ a
 a
 1
 CMP
-BGT
-55
-a
-5
-CMP
-BGE
-92
-#55
-#56
+BLE
+86
+#50
 b
 1
 CMP
 BLE
-84
+78
 b
 b
 1
@@ -71,7 +65,7 @@ b
 2
 CMP
 BNE
-81
+75
 "Dentro del if b vale"
 WRITE
 b
@@ -79,10 +73,10 @@ WRITE
 b
 -525
 =
-#81
+#75
 BI
-56
-#84
+50
+#78
 a
 a
 1
@@ -90,7 +84,7 @@ a
 =
 BI
 44
-#92
+#86
 "Resultado final de B"
 WRITE
 b

@@ -6,7 +6,7 @@ INIT
 }
 
 WRITE("Slice and Concat");
-e = sliceAndConcat(3, 6, "amarillo", "verde", FALSE);
+e = sliceAndConcat(2, 4, "leandro", "verde", FALSE);
 WRITE(e);
 
 WRITE("Sum First Primes");
@@ -27,7 +27,7 @@ else
    a=3;
 
 }
-while (a > 1 or a<5)
+while (a > 1)
 {
    while (b > 1)
    {

@@ -19,19 +19,19 @@ MAXTEXTSIZE	EQU		320
 	f		dd		?
 	g		dd		?
 	_T_Slice_and_Concat		db		"Slice and Concat", '$', 302 dup (?)
-	_3		dd		3
-	_6		dd		6
-	_T_amarillo		db		"amarillo", '$', 310 dup (?)
+	_2		dd		2
+	_4		dd		4
+	_T_leandro		db		"leandro", '$', 311 dup (?)
 	_T_verde		db		"verde", '$', 313 dup (?)
-	_T_verderill		db		"verderill", '$', 309 dup (?)
+	_T_verdeand		db		"verdeand", '$', 310 dup (?)
 	_T_Sum_First_Primes		db		"Sum First Primes", '$', 302 dup (?)
 	_5		dd		5
 	_28		dd		28
 	_T_Sentencias_de_Control_anidadas		db		"Sentencias de Control anidadas", '$', 288 dup (?)
 	_T_Resultado_inicial_de_B		db		"Resultado inicial de B", '$', 296 dup (?)
-	_4		dd		4
+	_6		dd		6
+	_3		dd		3
 	_1		dd		1
-	_2		dd		2
 	_T_Dentro_del_if_b_vale		db		"Dentro del if b vale", '$', 298 dup (?)
 	_NEG_525		dd		-525
 	_T_Resultado_final_de_B		db		"Resultado final de B", '$', 298 dup (?)
@@ -55,7 +55,7 @@ MAXTEXTSIZE	EQU		320
 	MOV AX, @DATA
 	MOV DS, AX
 	MOV ES, AX
-	MOV SI, OFFSET	_T_verderill
+	MOV SI, OFFSET	_T_verdeand
 	MOV DI, OFFSET	e
 	CLD
 COPIA_CADENA_0:
@@ -118,23 +118,15 @@ ET_44:
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JA	ET_55
-	FILD	_5
-	FILD	a
-	FCOMP
-	FSTSW	AX
-	FWAIT
-	SAHF
-	JAE	ET_92
-ET_55:
-ET_56:
+	JBE	ET_86
+ET_50:
 	FILD	_1
 	FILD	b
 	FCOMP
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JBE	ET_84
+	JBE	ET_78
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	b
@@ -152,7 +144,7 @@ ET_56:
 	FSTSW	AX
 	FWAIT
 	SAHF
-	JNE	ET_81
+	JNE	ET_75
 ;SALIDA POR CONSOLA
 	DisplayString	_T_Dentro_del_if_b_vale
 	NewLine 1
@@ -162,9 +154,9 @@ ET_56:
 ;ASIGNACION ENTERA
 	FILD	_NEG_525
 	FISTP	b
-ET_81:
-	JMP	ET_56
-ET_84:
+ET_75:
+	JMP	ET_50
+ET_78:
 ;RESTA DE ENTEROS
 	FILD	_1
 	FILD	a
@@ -174,7 +166,7 @@ ET_84:
 	FILD	auxE1
 	FISTP	a
 	JMP	ET_44
-ET_92:
+ET_86:
 ;SALIDA POR CONSOLA
 	DisplayString	_T_Resultado_final_de_B
 	NewLine 1

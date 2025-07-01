@@ -8,19 +8,19 @@
        f	|	        	|	   Float	|	       0
        g	|	        	|	   Float	|	       0
 _"Slice and Concat"	|	"Slice and Concat"	|	 CTE_STR	|	      18
-      _3	|	       3	|	 CTE_INT	|	       0
-      _6	|	       6	|	 CTE_INT	|	       0
-_"amarillo"	|	"amarillo"	|	 CTE_STR	|	      10
+      _2	|	       2	|	 CTE_INT	|	       0
+      _4	|	       4	|	 CTE_INT	|	       0
+_"leandro"	|	"leandro"	|	 CTE_STR	|	       9
 _"verde"	|	 "verde"	|	 CTE_STR	|	       7
-_"verderill"	|	"verderill"	|	 CTE_STR	|	      11
+_"verdeand"	|	"verdeand"	|	 CTE_STR	|	      10
 _"Sum First Primes"	|	"Sum First Primes"	|	 CTE_STR	|	      18
       _5	|	       5	|	 CTE_INT	|	       0
      _28	|	      28	|	 CTE_INT	|	       0
 _"Sentencias de Control anidadas"	|	"Sentencias de Control anidadas"	|	 CTE_STR	|	      32
 _"Resultado inicial de B"	|	"Resultado inicial de B"	|	 CTE_STR	|	      24
-      _4	|	       4	|	 CTE_INT	|	       0
+      _6	|	       6	|	 CTE_INT	|	       0
+      _3	|	       3	|	 CTE_INT	|	       0
       _1	|	       1	|	 CTE_INT	|	       0
-      _2	|	       2	|	 CTE_INT	|	       0
 _"Dentro del if b vale"	|	"Dentro del if b vale"	|	 CTE_STR	|	      22
    _-525	|	    -525	|	 CTE_INT	|	       0
 _"Resultado final de B"	|	"Resultado final de B"	|	 CTE_STR	|	      22
